@@ -21,7 +21,7 @@ export default function AdBanner() {
   if (!ad) {
     return (
       <div className="text-center text-red-500 py-10">
-        NO AD FOUND
+        return null;
       </div>
     );
   }
