@@ -20,10 +20,10 @@ export default function AdBanner() {
 
   if (!ad) {
     return (
-      <div className="text-center text-red-500 py-10">
-        return null;
-      </div>
-    );
+  <div className="text-center py-4 text-gray-500 text-sm">
+    Proje Musluk
+  </div>
+);
   }
 
   return (
