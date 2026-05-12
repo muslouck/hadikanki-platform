@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Yarışı Pro - Zamanlı</title>
+    <style>
+        :root {
+            --primary: #3498db; --success: #2ecc71; --error: #e74c3c; --bg: #f8f9fa; --warning: #f39c12;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
+        
+        .stats-panel { 
+            display: flex; gap: 20px; background: #2c3e50; color: white; padding: 15px 25px; 
+            border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: bold; font-size: 18px;
+        }
+        .stat-item span { color: var(--success); }
+        .stat-item.perfect span { color: #f1c40f; }
+        .timer span { color: var(--error); font-family: monospace; font-size: 22px; }
+
+        .setup-panel { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 600px; width: 100%; position: relative; }
+        
+        .clue-box { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; text-transform: uppercase; }
+        .word-grid { display: flex; gap: 8px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+        
+        .letter-input { 
+            width: 40px; height: 50px; border: 2px solid #ddd; border-radius: 8px; 
+            font-size: 22px; font-weight: bold; text-align: center; text-transform: uppercase; 
+            outline: none; transition: all 0.2s; background: white;
+        }
+        .is-correct { border-color: var(--success) !important; background-color: #e8f8f0 !important; }
+        .is-wrong { border-color: var(--error) !important; background-color: #fdeaea !important; }
+        
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-hint { background: var(--warning); color: white; }
+        .btn-next { background: #9b59b6; color: white; }
+        
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; }
+        #msg { margin-top: 15px; font-weight: bold; min-height: 60px; line-height: 1.4; font-size: 20px; }
+
+        .confetti {
+            position: fixed; width: 10px; height: 10px; top: -10px; z-index: 5; animation: fall 3s linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        
+        .disabled { pointer-events: none; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="stats-panel">
+        <div class="stat-item perfect">HARİKA: <span id="countPerfect">0</span></div>
+        <div class="stat-item">İYİ: <span id="countNormal">0</span></div>
+        <div class="timer">SÜRE: <span id="timeLeft">00:00</span></div>
+    </div>
+
+    <div class="setup-panel">
+        <select id="duration" onchange="resetGame()">
+            <option value="60">1 Dakika</option>
+            <option value="120">2 Dakika</option>
+            <option value="180">3 Dakika</option>
+            <option value="240">4 Dakika</option>
+            <option value="300">5 Dakika</option>
+            <option value="600">10 Dakika</option>
+        </select>
+        <select id="mode" onchange="resetGame()">
+            <option value="en-tr">English ➔ Türkçe</option>
+            <option value="tr-en">Türkçe ➔ English</option>
+        </select>
+        <select id="difficulty" onchange="resetGame()">
+            <option value="easy">Kolay</option>
+            <option value="medium" selected>Orta</option>
+            <option value="hard">Zor</option>
+        </select>
+        <button class="btn btn-primary" onclick="resetGame()">Yarışı Başlat</button>
+    </div>
+
+    <div class="card" id="gameCard">
+        <div class="clue-box" id="clueText">Süreyi Seçin ve Başlayın!</div>
+        <div class="word-grid" id="grid"></div>
+        <div class="btn-group">
+            <button class="btn btn-hint" id="btnHint" onclick="getHint()">Harf Ver (H)</button>
+            <button class="btn btn-next" id="btnNext" onclick="newGame()">Atla (Enter)</button>
+        </div>
+        <p id="msg"></p>
+    </div>
+
+    <script>
+        const dictionary = [
+            { en: "WORK", tr: "ÇALIŞMAK", level: "medium" }, { en: "JOB", tr: "İŞ", level: "easy" }, { en: "COMPANY", tr: "ŞİRKET", level: "medium" }, { en: "OFFICE", tr: "OFİS", level: "easy" }, { en: "MEETING", tr: "TOPLANTI", level: "hard" }, { en: "BOSS", tr: "PATRON", level: "medium" }, { en: "EMPLOYEE", tr: "ÇALIŞAN", level: "hard" }, { en: "BUSINESS", tr: "TİCARET", level: "hard" }, { en: "PROJECT", tr: "PROJE", level: "medium" }, { en: "REPORT", tr: "RAPOR", level: "medium" }, { en: "MANAGER", tr: "MÜDÜR", level: "medium" }, { en: "SALARY", tr: "MAAŞ", level: "medium" }, { en: "CAREER", tr: "KARİYER", level: "medium" }, { en: "TEAM", tr: "TAKIM", level: "easy" }, { en: "CUSTOMER", tr: "MÜŞTERİ", level: "hard" }, { en: "STAFF", tr: "PERSONEL", level: "hard" }, { en: "DUTY", tr: "GÖREV", level: "easy" }, { en: "TARGET", tr: "HEDEF", level: "medium" },
+            { en: "HOME", tr: "EV", level: "easy" }, { en: "ROOM", tr: "ODA", level: "easy" }, { en: "FAMILY", tr: "AİLE", level: "medium" }, { en: "FRIEND", tr: "ARKADAŞ", level: "medium" }, { en: "WINDOW", tr: "PENCERE", level: "medium" }, { en: "TABLE", tr: "MASA", level: "medium" }, { en: "CHAIR", tr: "SANDALYE", level: "hard" }, { en: "BED", tr: "YATAK", level: "easy" }, { en: "DOOR", tr: "KAPI", level: "easy" }, { en: "FOOD", tr: "YEMEK", level: "medium" }, { en: "WATER", tr: "SU", level: "easy" }, { en: "SLEEP", tr: "UYUMAK", level: "medium" },
+            { en: "BIG", tr: "BÜYÜK", level: "medium" }, { en: "SMALL", tr: "KÜÇÜK", level: "medium" }, { en: "GOOD", tr: "İYİ", level: "easy" }, { en: "BAD", tr: "KÖTÜ", level: "easy" }, { en: "BEAUTIFUL", tr: "GÜZEL", level: "medium" }, { en: "FAST", tr: "HIZLI", level: "medium" }, { en: "SLOW", tr: "YAVAŞ", level: "medium" }, { en: "HAPPY", tr: "MUTLU", level: "medium" }, { en: "CLEAN", tr: "TEMİZ", level: "medium" }, { en: "STRONG", tr: "GÜÇLÜ", level: "medium" }, { en: "EASY", tr: "KOLAY", level: "medium" }, { en: "HARD", tr: "ZOR", level: "easy" },
+            { en: "TIME", tr: "ZAMAN", level: "medium" }, { en: "DAY", tr: "GÜN", level: "easy" }, { en: "WEEK", tr: "HAFTA", level: "medium" }, { en: "MONTH", tr: "AY", level: "easy" }, { en: "YEAR", tr: "YIL", level: "easy" }, { en: "TODAY", tr: "BUGÜN", level: "medium" }, { en: "MORNING", tr: "SABAH", level: "medium" }, { en: "NIGHT", tr: "GECE", level: "easy" },
+            { en: "CAR", tr: "ARABA", level: "medium" }, { en: "BUS", tr: "OTOBÜS", level: "medium" }, { en: "PLANE", tr: "UÇAK", level: "easy" }, { en: "SCHOOL", tr: "OKUL", level: "easy" }, { en: "BOOK", tr: "KİTAP", level: "medium" }, { en: "COMPUTER", tr: "BİLGİSAYAR", level: "hard" }, { en: "LEARN", tr: "ÖĞRENMEK", level: "hard" },
+            { en: "PASSPORT", tr: "PASAPORT", level: "hard" }, { en: "SURGERY", tr: "AMELİYAT", level: "hard" }, { en: "GREET", tr: "SELAM", level: "medium" }, { en: "VERIFY", tr: "ONAYLA", level: "hard" }, { en: "REVIEW", tr: "İNCELEME", level: "hard" }, { en: "JUST", tr: "SADECE", level: "hard" }, { en: "ALMOST", tr: "NEREDEYSE", level: "hard" }, { en: "FLAG", tr: "BAYRAK", level: "medium" }, { en: "REPLY", tr: "CEVAP", level: "medium" }, { en: "REQUEST", tr: "TALEP", level: "medium" }, { en: "DEMAND", tr: "İSTEK", level: "medium" }, { en: "ISSUE", tr: "SORUN", level: "medium" }, { en: "VELVET", tr: "KADİFE", level: "medium" }, { en: "BOLT", tr: "CIVATA", level: "hard" }, { en: "HARM", tr: "ZARAR", level: "medium" }, { en: "SECURE", tr: "GÜVENLİ", level: "hard" }
+        ];
+
+        let targetWord = "";
+        let hintTaken = false;
+        let scorePerfect = 0;
+        let scoreNormal = 0;
+        let timeLeft = 0;
+        let timerId = null;
+        let isGameActive = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (!isGameActive) return;
+            if (e.key === "Enter") newGame();
+            if (e.key.toLowerCase() === "h" && document.activeElement.tagName !== 'INPUT') getHint();
+        });
+
+        function resetGame() {
+            clearInterval(timerId);
+            scorePerfect = 0;
+            scoreNormal = 0;
+            document.getElementById('countPerfect').innerText = "0";
+            document.getElementById('countNormal').innerText = "0";
+            document.getElementById('gameCard').classList.remove('disabled');
+            
+            timeLeft = parseInt(document.getElementById('duration').value);
+            isGameActive = true;
+            
+            startTimer();
+            newGame();
+        }
+
+        function startTimer() {
+            timerId = setInterval(() => {
+                timeLeft--;
+                let mins = Math.floor(timeLeft / 60);
+                let secs = timeLeft % 60;
+                document.getElementById('timeLeft').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerId);
+            isGameActive = false;
+            document.getElementById('gameCard').classList.add('disabled');
+            document.getElementById('clueText').innerText = "SÜRE DOLDU!";
+            document.getElementById('msg').innerHTML = `
+                <div style="color:#2c3e50; font-size:24px;">OYUN BİTTİ ÖZETİ</div>
+                <div style="color:var(--warning)">HARİKA BİLİNEN: ${scorePerfect}</div>
+                <div style="color:var(--success)">HARF ALARAK BİLİNEN: ${scoreNormal}</div>
+                <button class="btn btn-primary" style="margin-top:10px" onclick="resetGame()">Tekrar Dene</button>
+            `;
+        }
+
+        function newGame() {
+            if(!isGameActive) return;
+            const mode = document.getElementById('mode').value;
+            const level = document.getElementById('difficulty').value;
+            document.getElementById('msg').innerText = "";
+            hintTaken = false;
+
+            const filtered = dictionary.filter(w => w.level === level);
+            const item = filtered[Math.floor(Math.random() * filtered.length)];
+            targetWord = (mode === "en-tr") ? item.tr : item.en;
+            document.getElementById('clueText').innerText = (mode === "en-tr") ? item.en : item.tr;
+
+            createGrid(targetWord);
+        }
+
+        function createGrid(word) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+            word.split('').forEach((char, i) => {
+                const input = document.createElement('input');
+                input.className = 'letter-input';
+                input.maxLength = 1;
+                input.dataset.answer = char.toLocaleUpperCase('tr-TR');
+
+                input.addEventListener('input', (e) => {
+                    const val = e.target.value.toLocaleUpperCase('tr-TR');
+                    input.classList.toggle('is-correct', val === input.dataset.answer);
+                    input.classList.toggle('is-wrong', val !== "" && val !== input.dataset.answer);
+                    if (val === input.dataset.answer && i < word.length - 1) grid.children[i + 1].focus();
+                    checkWin();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === "Backspace" && input.value === "" && i > 0) grid.children[i - 1].focus();
+                });
+                grid.appendChild(input);
+            });
+            setTimeout(() => { if(grid.children[0]) grid.children[0].focus(); }, 100);
+        }
+
+        function getHint() {
+            if(!isGameActive) return;
+            hintTaken = true;
+            const inputs = document.querySelectorAll('.letter-input');
+            for (let input of inputs) {
+                if (!input.classList.contains('is-correct')) {
+                    input.value = input.dataset.answer;
+                    input.classList.add('is-correct');
+                    input.classList.remove('is-wrong');
+                    if(input.nextElementSibling) input.nextElementSibling.focus();
+                    checkWin();
+                    break;
+                }
+            }
+        }
+
+        function startParty() {
+            for(let i=0; i<40; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function checkWin() {
+            const inputs = document.querySelectorAll('.letter-input');
+            const isFinished = Array.from(inputs).every(input => input.classList.contains('is-correct'));
+            if (isFinished) {
+                const msg = document.getElementById('msg');
+                if (!hintTaken) {
+                    scorePerfect++;
+                    document.getElementById('countPerfect').innerText = scorePerfect;
+                    msg.innerHTML = "<span style='color:#e67e22'>SEN BİR HARİKASIN! 🥳</span><br><small>ENTER ile devam et</small>";
+                    startParty();
+                } else {
+                    scoreNormal++;
+                    document.getElementById('countNormal').innerText = scoreNormal;
+                    msg.innerHTML = "<span style='color:#2ecc71'>İYİ GİDİYORSUN! 👍</span><br><small>ENTER ile devam et</small>";
+                }
+                // Otomatik geçiş istersen buraya newGame() ekleyebilirsin ama Enter daha kontrollü.
+            }
+        }
+    </script>
+</body>
+</html>

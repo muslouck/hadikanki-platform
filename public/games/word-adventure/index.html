@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Quest: Operation Final</title>
+    <style>
+        :root { --bg: #050505; --neon: #00f3ff; --pink: #ff00ff; --green: #39ff14; --gold: #fff200; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; overflow-x: hidden; background-image: radial-gradient(circle at 50% 50%, #0a0a2e 0%, #050505 100%); }
+        .screen { width: 95%; max-width: 750px; margin-top: 20px; text-align: center; }
+        .card { background: rgba(13, 13, 13, 0.95); padding: 20px; border-radius: 20px; border: 2px solid var(--neon); box-shadow: 0 0 20px var(--neon); }
+        
+        .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid #222; border-radius: 10px; }
+        .rank-btn { padding: 10px; border: 1px solid #333; background: #111; color: #888; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .rank-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(255, 242, 0, 0.1); box-shadow: inset 0 0 10px var(--gold); }
+        
+        .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+        .sub-btn { padding: 12px; border: 2px solid var(--neon); background: transparent; color: var(--neon); cursor: pointer; border-radius: 10px; font-size: 13px; font-weight: 900; text-transform: uppercase; }
+        .sub-btn.active { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
+
+        .clue { font-size: 42px; font-weight: 900; margin-bottom: 20px; text-shadow: 0 0 15px var(--neon); text-transform: uppercase; min-height: 60px; }
+        .grid { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; }
+        .box { width: 45px; height: 55px; background: transparent; border: 2px solid #444; border-radius: 5px; color: white; font-size: 26px; font-weight: bold; text-align: center; outline: none; text-transform: uppercase; }
+        .box.correct { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green); }
+        
+        .timer-bg { width: 100%; height: 12px; background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #333; margin-top: 20px; }
+        .timer-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon), var(--pink)); transition: width 0.1s linear; }
+        
+        .btn-action { padding: 15px; border: 2px solid var(--green); color: var(--green); background: transparent; border-radius: 10px; cursor: pointer; font-weight: 900; width: 100%; font-size: 20px; margin-top: 15px; transition: 0.3s; }
+        .btn-action:hover { background: var(--green); color: black; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body onload="init()">
+
+    <div id="loginScreen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--neon); margin: 0; letter-spacing: 3px;">ARMED FORCES HQ</h1>
+            <p style="color:var(--pink); font-weight: bold; font-size: 14px; margin-bottom: 15px;">[ RÜTBE VE KADEME SEÇİMİ ]</p>
+            
+            <div class="rank-grid" id="rankGrid"></div>
+            
+            <div class="sub-grid">
+                <button id="kad1" class="sub-btn active" onclick="setK(1)">KADEME 1 (ACEMİ)</button>
+                <button id="kad2" class="sub-btn" onclick="setK(2)">KADEME 2 (USTA)</button>
+            </div>
+
+            <select id="mode" style="background:#000; color:white; padding:12px; width:100%; border:1px solid var(--neon); border-radius:8px; margin-top:15px; font-weight: bold;">
+                <option value="en-tr">ENGLISH ➔ TÜRKÇE</option>
+                <option value="tr-en">TÜRKÇE ➔ ENGLISH</option>
+            </select>
+
+            <button class="btn-action" onclick="go()">OPERASYONU BAŞLAT</button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="screen hidden">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
+            <div id="rDisp" style="color:var(--gold)">ER</div>
+            <div id="cDisp" style="color:white; font-size: 14px;">0/50</div>
+            <div id="hDisp" style="color:var(--pink)">❤️❤️❤️</div>
+            <div style="color:var(--neon)">PTS: <span id="sDisp">0</span></div>
+        </div>
+        <div class="card">
+            <div id="clue" class="clue"></div>
+            <div id="grid" class="grid"></div>
+            <button onclick="hint()" style="border:1px solid var(--gold); background:transparent; color:var(--gold); padding:12px; cursor:pointer; border-radius:8px; margin-bottom:15px; width:100%; font-weight:bold;">İPUCU AL (100 PTS)</button>
+            <div class="timer-bg"><div id="tFill" class="timer-fill"></div></div>
+        </div>
+    </div>
+
+    <script>
+        const db = {
+            "ER": { 1: [{en:"Go",tr:"Gitmek"},{en:"Come",tr:"Gelmek"},{en:"See",tr:"Görmek"},{en:"Look",tr:"Bakmak"},{en:"Make",tr:"Yapmak"},{en:"Do",tr:"Yapmak"},{en:"Take",tr:"Almak"},{en:"Give",tr:"Vermek"},{en:"Get",tr:"Almak"},{en:"Think",tr:"Düşünmek"},{en:"Say",tr:"Söylemek"},{en:"Tell",tr:"Anlatmak"},{en:"Want",tr:"İstemek"},{en:"Find",tr:"Bulmak"},{en:"Use",tr:"Kullanmak"},{en:"Eat",tr:"Yemek"},{en:"Drink",tr:"İçmek"},{en:"Sleep",tr:"Uyumak"},{en:"Home",tr:"Ev"},{en:"Room",tr:"Oda"},{en:"Family",tr:"Aile"},{en:"Friend",tr:"Arkadaş"},{en:"Man",tr:"Adam"},{en:"Woman",tr:"Kadın"},{en:"Child",tr:"Çocuk"},{en:"Baby",tr:"Bebek"},{en:"Water",tr:"Su"},{en:"Food",tr:"Gıda"},{en:"Money",tr:"Para"},{en:"Work",tr:"İş"}], 2: [{en:"Car",tr:"Araba"},{en:"Bus",tr:"Otobüs"},{en:"Road",tr:"Yol"},{en:"City",tr:"Şehir"},{en:"School",tr:"Okul"},{en:"Book",tr:"Kitap"},{en:"Pen",tr:"Kalem"},{en:"Day",tr:"Gün"},{en:"Time",tr:"Zaman"},{en:"Good",tr:"İyi"},{en:"Bad",tr:"Kötü"},{en:"Fast",tr:"Hızlı"},{en:"Hot",tr:"Sıcak"},{en:"New",tr:"Yeni"},{en:"Old",tr:"Eski"}] },
+            "ONBAŞI": { 1: [{en:"Help",tr:"Yardım"},{en:"Wait",tr:"Beklemek"},{en:"Stop",tr:"Durmak"},{en:"Always",tr:"Asla"},{en:"Office",tr:"Ofis"},{en:"Doctor",tr:"Doktor"},{en:"Bag",tr:"Çanta"},{en:"Shoes",tr:"Ayakkabı"},{en:"Shirt",tr:"Gömlek"},{en:"Red",tr:"Kırmızı"}], 2: [{en:"Blue",tr:"Mavi"},{en:"Black",tr:"Siyah"},{en:"White",tr:"Beyaz"},{en:"Price",tr:"Fiyat"},{en:"Pay",tr:"Ödemek"},{en:"Read",tr:"Okumak"},{en:"Love",tr:"Sevmek"},{en:"Sky",tr:"Gökyüzü"},{en:"Rain",tr:"Yağmur"},{en:"Smile",tr:"Gülmek"}] },
+            "ÇAVUŞ": { 1: [{en:"Rich",tr:"Zengin"},{en:"Clean",tr:"Temiz"},{en:"Truth",tr:"Gerçek"},{en:"Strong",tr:"Güçlü"},{en:"Full",tr:"Dolu"},{en:"Secret",tr:"Sır"},{en:"Peace",tr:"Barış"},{en:"War",tr:"Savaş"},{en:"World",tr:"Dünya"},{en:"Bank",tr:"Banka"}], 2: [{en:"Map",tr:"Harita"},{en:"Ticket",tr:"Bilet"},{en:"Hotel",tr:"Otel"},{en:"Dream",tr:"Rüya"},{en:"Lesson",tr:"Ders"},{en:"Student",tr:"Öğrenci"},{en:"Key",tr:"Anahtar"},{en:"Stone",tr:"Taş"},{en:"Paper",tr:"Kağıt"},{en:"Leather",tr:"Deri"}] },
+            "ASTSUBAY": { 1: [{en:"Ask",tr:"Sormak"},{en:"Need",tr:"İhtiyaç"},{en:"Keep",tr:"Tutmak"},{en:"Bring",tr:"Getirmek"},{en:"Freedom",tr:"Özgürlük"},{en:"Tax",tr:"Vergi"},{en:"Soldier",tr:"Asker"},{en:"Win",tr:"Kazanmak"},{en:"Health",tr:"Sağlık"},{en:"Wall",tr:"Duvar"}], 2: [{en:"Tower",tr:"Kule"},{en:"Brick",tr:"Tuğla"},{en:"Fence",tr:"Çit"},{en:"Early",tr:"Erken"},{en:"Late",tr:"Geç"},{en:"Trade",tr:"Ticaret"},{en:"Income",tr:"Gelir"},{en:"Safe",tr:"Kasa"},{en:"Build",tr:"İnşa"},{en:"Cure",tr:"Tedavi"}] },
+            "BİNBAŞI": { 1: [{en:"Pilot",tr:"Pilot"},{en:"Visa",tr:"Vize"},{en:"Search",tr:"Aramak"},{en:"Save",tr:"Kurtarmak"},{en:"Brain",tr:"Beyin"},{en:"Lawyer",tr:"Avukat"},{en:"Guilty",tr:"Suçlu"},{en:"Flood",tr:"Sel"},{en:"Youth",tr:"Gençlik"},{en:"Adult",tr:"Yetişkin"}], 2: [{en:"Discount",tr:"İndirim"},{en:"Size",tr:"Boyut"},{en:"Pattern",tr:"Desen"},{en:"Pharmacy",tr:"Eczane"},{en:"Safety",tr:"Güvenlik"},{en:"Error",tr:"Hata"},{en:"Habit",tr:"Alışkanlık"},{en:"Farmer",tr:"Çiftçi"},{en:"Seed",tr:"Tohum"},{en:"Soil",tr:"Toprak"}] },
+            "YARBAY": { 1: [{en:"Expert",tr:"Uzman"},{en:"Chief",tr:"Başkan"},{en:"Officer",tr:"Memur"},{en:"Crazy",tr:"Çılgın"},{en:"Choose",tr:"Seçmek"},{en:"Blanket",tr:"Battaniye"},{en:"Stairs",tr:"Merdiven"},{en:"Hall",tr:"Hol"},{en:"Author",tr:"Yazar"},{en:"Page",tr:"Sayfa"}], 2: [{en:"Article",tr:"Makale"},{en:"Science",tr:"Bilim"},{en:"Theory",tr:"Teori"},{en:"Result",tr:"Sonuç"},{en:"Atom",tr:"Atom"},{en:"Cargo",tr:"Kargo"},{en:"Supply",tr:"Tedarik"},{en:"Code",tr:"Kod"},{en:"Agree",tr:"Anlaşmak"},{en:"Doubt",tr:"Şüphe"}] },
+            "ALBAY": { 1: [{en:"Offer",tr:"Teklif"},{en:"Accept",tr:"Kabul"},{en:"Refuse",tr:"Red"},{en:"Plan",tr:"Plan"},{en:"Sweet",tr:"Tatlı"},{en:"Sour",tr:"Ekşi"},{en:"Hard",tr:"Sert"},{en:"Printer",tr:"Yazıcı"},{en:"Scanner",tr:"Tarayıcı"},{en:"Stamp",tr:"Mühür"}], 2: [{en:"Shake",tr:"Sallamak"},{en:"Wave",tr:"Dalga"},{en:"Touch",tr:"Dokunmak"},{en:"Grab",tr:"Kapmak"},{en:"Clinic",tr:"Klinik"},{en:"Surgery",tr:"Ameliyat"},{en:"Worth",tr:"Değer"},{en:"Merit",tr:"Erdem"},{en:"Force",tr:"Kuvvet"},{en:"Genius",tr:"Dahi"}] },
+            "GENERAL": { 1: [{en:"Similar",tr:"Benzer"},{en:"Chief",tr:"Başlıca"},{en:"Mix",tr:"Karıştır"},{en:"Chop",tr:"Doğramak"},{en:"Melt",tr:"Eritmek"},{en:"Era",tr:"Çağ"},{en:"Century",tr:"Yüzyıl"},{en:"Ruin",tr:"Harabe"},{en:"Fossil",tr:"Fosil"},{en:"Panic",tr:"Panik"}], 2: [{en:"Stress",tr:"Stres"},{en:"Joy",tr:"Sevinç"},{en:"Pride",tr:"Gurur"},{en:"Shame",tr:"Utanç"},{en:"Huge",tr:"Devasa"},{en:"Smooth",tr:"Düzgün"},{en:"Trust",tr:"Güven"},{en:"Steal",tr:"Çalmak"},{en:"Shield",tr:"Kalkan"},{en:"Weapon",tr:"Silah"}] },
+            "MAREŞAL": { 1: [{en:"Seal",tr:"Mühür"},{en:"Zone",tr:"Bölge"},{en:"Fate",tr:"Kader"},{en:"Shift",tr:"Vardiya"},{en:"Lens",tr:"Mercek"},{en:"Focus",tr:"Odak"},{en:"Photo",tr:"Fotoğraf"},{en:"Edit",tr:"Düzenle"},{en:"Visit",tr:"Ziyaret"},{en:"Welcome",tr:"Karşıla"}], 2: [{en:"Basin",tr:"Lavabo"},{en:"Cloth",tr:"Bez"},{en:"Copper",tr:"Bakır"},{en:"Vapor",tr:"Buhar"},{en:"Pattern",tr:"Kalıp"},{en:"Modern",tr:"Modern"},{en:"Sweat",tr:"Terlemek"},{en:"Rest",tr:"Dinlenmek"},{en:"Thorn",tr:"Diken"},{en:"Bush",tr:"Çalı"}] },
+            "YILDIZ": { 1: [{en:"Elite",tr:"Seçkin"},{en:"Noble",tr:"Soylu"},{en:"Slave",tr:"Köle"},{en:"Native",tr:"Yerli"},{en:"Define",tr:"Tanımla"},{en:"Fare",tr:"Ücret"},{en:"Harbor",tr:"Liman"},{en:"Sphere",tr:"Küre"},{en:"Cone",tr:"Koni"},{en:"Angle",tr:"Açı"}], 2: [{en:"Height",tr:"Yükseklik"},{en:"Volume",tr:"Hacim"},{en:"Glow",tr:"Parıltı"},{en:"Shine",tr:"Parlamak"},{en:"Roll",tr:"Yuvarlan"},{en:"Bounce",tr:"Zıpla"},{en:"Cast",tr:"Kadro"},{en:"Bolt",tr:"Cıvata"},{en:"Joint",tr:"Eklem"},{en:"Risk",tr:"Risk"}] },
+            "ELMAS": { 1: [{en:"Goal",tr:"Hedef"},{en:"Yarn",tr:"İplik"},{en:"Velvet",tr:"Kadife"},{en:"Jewel",tr:"Mücevher"},{en:"Silk",tr:"İpek"},{en:"Cotton",tr:"Pamuk"},{en:"Brave",tr:"Cesur"},{en:"Honest",tr:"Dürüst"},{en:"Calm",tr:"Sakin"},{en:"Soul",tr:"Ruh"}], 2: [{en:"Region",tr:"Bölge"},{en:"Border",tr:"Sınır"},{en:"Island",tr:"Ada"},{en:"Desert",tr:"Çöl"},{en:"Ocean",tr:"Okyanus"},{en:"Valley",tr:"Vadi"},{en:"Dark",tr:"Koyu"},{en:"Wait",tr:"Bekle"},{en:"Try",tr:"Dene"},{en:"Fix",tr:"Tamir"}] }
+        };
+
+        let s = { sc: 0, l: 3, d: [], t: "", r: "ER", k: 1, tm: null, tl: 100, cur: null };
+
+        function init() {
+            const g = document.getElementById('rankGrid');
+            Object.keys(db).forEach(r => {
+                const btn = document.createElement('button');
+                btn.className = 'rank-btn' + (r === s.r ? ' selected' : '');
+                btn.innerText = "🎖️ " + r;
+                btn.onclick = () => { s.r = r; document.querySelectorAll('.rank-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); };
+                g.appendChild(btn);
+            });
+        }
+
+        function setK(k) { s.k = k; document.getElementById('kad1').classList.toggle('active', k===1); document.getElementById('kad2').classList.toggle('active', k===2); }
+
+        function go() {
+            const p = db[s.r][s.k];
+            if(!p || p.length === 0) return alert("Bu kademe hazır değil!");
+            s.d = [...p].sort(() => Math.random() - 0.5);
+            s.sc = 0; s.l = 3;
+            s.m = document.getElementById('mode').value;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('rDisp').innerText = s.r + " (K" + s.k + ")";
+            nxt();
+        }
+
+        function nxt(pen = false) {
+            clearInterval(s.tm);
+            if(pen) s.l--;
+            if(s.l <= 0) { alert("SİSTEM ÇÖKTÜ!"); return location.reload(); }
+            if(s.d.length === 0) { alert("🎖️ GÖREV TAMAMLANDI! 🎖️"); return location.reload(); }
+
+            s.cur = s.d.pop();
+            const conv = v => v.toLocaleUpperCase('tr-TR').replace(/i/g,'İ').replace(/ı/g,'I');
+            s.t = conv(s.m === "en-tr" ? s.cur.tr : s.cur.en);
+            document.getElementById('clue').innerText = s.m === "en-tr" ? s.cur.en : s.cur.tr;
+            document.getElementById('hDisp').innerText = "❤️".repeat(s.l);
+            document.getElementById('sDisp').innerText = s.sc;
+            document.getElementById('cDisp').innerText = "KALAN: " + s.d.length;
+            s.tl = 100;
+            
+            render();
+            s.tm = setInterval(() => {
+                s.tl -= 0.5;
+                document.getElementById('tFill').style.width = s.tl + "%";
+                if(s.tl <= 0) nxt(true);
+            }, 100);
+        }
+
+        function render() {
+            const g = document.getElementById('grid'); g.innerHTML = "";
+            s.t.split('').forEach((char, i) => {
+                const input = document.createElement('input');
+                input.className = 'box'; input.maxLength = 1; input.dataset.ans = char;
+                input.oninput = (e) => {
+                    if(e.target.value.toLocaleUpperCase('tr-TR').replace(/i/g,'İ').replace(/ı/g,'I') === char) {
+                        input.classList.add('correct'); input.disabled = true;
+                        if(i < s.t.length - 1) g.children[i+1].focus();
+                        if(Array.from(g.children).every(b => b.classList.contains('correct'))) {
+                            clearInterval(s.tm); s.sc += 150; setTimeout(() => nxt(false), 600);
+                        }
+                    }
+                };
+                g.appendChild(input);
+            });
+            g.firstChild.focus();
+        }
+
+        function hint() {
+            if(s.sc < 100) return alert("PTS YETERSİZ!");
+            const boxes = Array.from(document.querySelectorAll('.box:not(.correct)'));
+            if(boxes.length > 0) {
+                const b = boxes[0];
+                b.value = b.dataset.ans; b.classList.add('correct'); b.disabled = true;
+                s.sc -= 100; document.getElementById('sDisp').innerText = s.sc;
+                if(Array.from(document.getElementById('grid').children).every(x => x.classList.contains('correct'))) setTimeout(() => nxt(false), 600);
+            }
+        }
+    </script>
+</body>
+</html>

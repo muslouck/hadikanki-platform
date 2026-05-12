@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER STORM: ÖZEL GÜÇLER SİSTEMİ</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root { 
+            --neon-green: #39ff14; --neon-red: #ff3131; 
+            --neon-cyan: #00f0ff; --neon-purple: #bc13fe; --bg-dark: #020205; --neon-gold: #ffcc00;
+        }
+        body, html { margin: 0; padding: 0; background: var(--bg-dark); color: white; font-family: 'Share Tech Mono', monospace; overflow: hidden; height: 100%; transition: 0.3s; }
+
+        #hud {
+            position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 40px; background: rgba(0,0,0,0.9); z-index: 200; border-bottom: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.2); backdrop-filter: blur(10px); box-sizing: border-box;
+        }
+        .stat-val { font-size: 1.4rem; display: block; text-shadow: 0 0 10px currentColor; }
+        #rank-display { color: var(--neon-gold); font-size: 1.8rem; font-weight: bold; text-align: center; letter-spacing: 2px; }
+
+        .bomb {
+            position: absolute; min-width: 160px; padding: 12px; border-radius: 8px; border: 2px solid;
+            background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 0 20px currentColor; text-transform: uppercase; font-weight: bold; z-index: 50;
+            transition: transform 0.1s;
+        }
+        .particle { position: absolute; pointer-events: none; border-radius: 50%; z-index: 60; }
+
+        #input-container { position: fixed; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 300; }
+        #input-box {
+            background: #001100; border: 2px solid var(--neon-green); color: var(--neon-green); font-size: 2.2rem;
+            text-align: center; outline: none; width: 550px; padding: 15px; border-radius: 12px;
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.3); font-family: 'Share Tech Mono', monospace;
+        }
+
+        #rank-up-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 500;
+        }
+
+        .shake { animation: heavy-shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes heavy-shake {
+            10%, 90% { transform: translate3d(-4px, 0, 0); }
+            20%, 80% { transform: translate3d(8px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-12px, 0, 0); }
+            40%, 60% { transform: translate3d(12px, 0, 0); }
+        }
+        @keyframes explode-1 { to { transform: translate(var(--tx), var(--ty)) rotate(360deg); opacity: 0; } }
+        @keyframes special-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        #damage-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        .lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        #game-over { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+    </style>
+</head>
+<body>
+<div id="damage-layer"></div>
+<div id="hud">
+    <div><span style="color:var(--neon-cyan)">STABILITY</span><span id="hp" class="stat-val" style="color:var(--neon-red)">100%</span></div>
+    <div id="rank-display">ER 🔰</div>
+    <div style="text-align:right"><span style="color:var(--neon-green)">XP_TOTAL</span><span id="score" class="stat-val" style="color:var(--neon-green)">0000</span></div>
+</div>
+<div id="warzone"></div>
+<div id="input-container">
+    <div style="color:var(--neon-green); margin-bottom: 8px;">> DECRYPT_COMMAND:</div>
+    <input type="text" id="input-box" autofocus autocomplete="off">
+</div>
+<div id="rank-up-overlay">
+    <h1 style="font-size: 5rem; color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold);">RÜTBE ATLANDI! 🎖️</h1>
+    <p id="next-rank-name" style="font-size: 2.5rem; color: #fff;"></p>
+</div>
+<div id="game-over">
+    <h1 style="font-size: 4rem; color: var(--neon-red);">SİSTEM ÇÖKTÜ</h1>
+    <p id="death-msg" style="font-size: 1.2rem; color: #fff; max-width: 800px; padding: 20px;"></p>
+    <button onclick="location.reload()" style="padding:15px 45px; background:var(--neon-green); border:none; cursor:pointer; font-weight:bold;">SİSTEMİ REBOOT ET</button>
+</div>
+<script>
+    const deathMessages = [
+        "SİSTEM ÇÖKTÜ: Mouse'u yavaşça yere bırakın. CPU mangal seviyesine ulaştı!",
+        "ERROR 404: Kelimeler galip geldi. Klavye istifa etti.",
+        "KRİTİK HATA: Veritabanı firar etti. Bir sahil kasabasında dondurma yiyorlar!",
+        "EYVAH: Reaktif çekirdek eridi! Dosyalar uzay boşluğunda süzülüyor.",
+        "GAME OVER: Komutanım, bu skorla ancak hesap makinesi savunuruz..."
+    ];
+
+    const RANKS = [
+        { name: "ER 🔰", minScore: 0, speed: 0.35, words: [
+            {en:"Go",tr:"Gitmek"},{en:"Come",tr:"Gelmek"},{en:"See",tr:"Görmek"},{en:"Look",tr:"Bakmak"},{en:"Make",tr:"Yapmak"},{en:"Do",tr:"Yapmak"},{en:"Take",tr:"Almak"},{en:"Give",tr:"Vermek"},{en:"Get",tr:"Almak"},{en:"Say",tr:"Söylemek"},{en:"Want",tr:"İstemek"},{en:"Find",tr:"Bulmak"},{en:"Use",tr:"Kullanmak"},{en:"Eat",tr:"Yemek yemek"},{en:"Drink",tr:"İçmek"},{en:"Sleep",tr:"Uyumak"},{en:"Home",tr:"Ev"},{en:"House",tr:"Müstakil Ev"},{en:"Room",tr:"Oda"},{en:"Family",tr:"Aile"},{en:"Friend",tr:"Arkadaş"},{en:"Man",tr:"Adam"},{en:"Woman",tr:"Kadın"},{en:"Child",tr:"Çocuk"},{en:"Baby",tr:"Bebek"},{en:"Name",tr:"İsim"},{en:"Water",tr:"Su"},{en:"Food",tr:"Yemek"},{en:"Bread",tr:"Ekmek"},{en:"Milk",tr:"Süt"},{en:"Tea",tr:"Çay"},{en:"Coffee",tr:"Kahve"},{en:"Big",tr:"Büyük"},{en:"Small",tr:"Küçük"},{en:"Good",tr:"İyi"},{en:"Bad",tr:"Kötü"},{en:"New",tr:"Yeni"},{en:"Old",tr:"Eski"},{en:"Day",tr:"Gün"},{en:"Week",tr:"Hafta"},{en:"Month",tr:"Ay"},{en:"Year",tr:"Yıl"},{en:"Morning",tr:"Sabah"},{en:"Night",tr:"Gece"},{en:"Work",tr:"İş"},{en:"Book",tr:"Kitap"},{en:"Pen",tr:"Kalem"},{en:"Car",tr:"Araba"},{en:"City",tr:"Şehir"},{en:"School",tr:"Okul"}
+        ]},
+        { name: "ONBAŞI 🎖️", minScore: 3000, speed: 0.38, words: [
+            {en:"Help",tr:"Yardım etmek"},{en:"Wait",tr:"Beklemek"},{en:"Stop",tr:"Durmak"},{en:"Start",tr:"Başlamak"},{en:"Always",tr:"Her zaman"},{en:"Never",tr:"Asla"},{en:"Because",tr:"Çünkü"},{en:"Without",tr:"Olmadan"},{en:"About",tr:"Hakkında"},{en:"Office",tr:"Ofis"},{en:"Company",tr:"Şirket"},{en:"Meeting",tr:"Toplantı"},{en:"Boss",tr:"Patron"},{en:"Employee",tr:"Çalışan"},{en:"Business",tr:"İş"},{en:"Project",tr:"Proje"},{en:"Report",tr:"Rapor"},{en:"Manager",tr:"Müdür"},{en:"Salary",tr:"Maaş"},{en:"Customer",tr:"Müşteri"},{en:"Team",tr:"Takım"},{en:"Buy",tr:"Satın almak"},{en:"Sell",tr:"Satmak"},{en:"Price",tr:"Fiyat"},{en:"Pay",tr:"Ödemek"},{en:"Talk",tr:"Konuşmak"},{en:"Write",tr:"Yazmak"},{en:"Read",tr:"Okumak"},{en:"Call",tr:"Aramak"},{en:"Body",tr:"Vücut"},{en:"Heart",tr:"Kalp"},{en:"Blood",tr:"Kan"},{en:"Doctor",tr:"Doktor"},{en:"Medicine",tr:"İlaç"},{en:"Sky",tr:"Gökyüzü"},{en:"Rain",tr:"Yağmur"},{en:"Shoes",tr:"Ayakkabı"}
+        ]},
+        { name: "ÇAVUŞ ⚔️", minScore: 7500, speed: 0.42, words: [
+            {en:"Rich",tr:"Zengin"},{en:"Poor",tr:"Fakir"},{en:"Clean",tr:"Temiz"},{en:"Strong",tr:"Güçlü"},{en:"Weak",tr:"Zayıf"},{en:"Empty",tr:"Boş"},{en:"Truth",tr:"Gerçek"},{en:"Lie",tr:"Yalan"},{en:"War",tr:"Savaş"},{en:"World",tr:"Dünya"},{en:"Country",tr:"Ülke"},{en:"Map",tr:"Harita"},{en:"Ticket",tr:"Bilet"},{en:"Idea",tr:"Fikir"},{en:"Hope",tr:"Umut"},{en:"Dream",tr:"Hayal"},{en:"Exam",tr:"Sınav"},{en:"Teacher",tr:"Öğretmen"},{en:"Library",tr:"Kütüphane"},{en:"Computer",tr:"Bilgisayar"},{en:"Internet",tr:"İnternet"},{en:"Kitchen",tr:"Mutfak"},{en:"Fridge",tr:"Buzdolabı"},{en:"Soap",tr:"Sabun"},{en:"Key",tr:"Anahtar"},{en:"Tool",tr:"Alet"},{en:"Metal",tr:"Metal"},{en:"Wood",tr:"Tahta"},{en:"Light",tr:"Işık"}
+        ]},
+        { name: "ASTSUBAY 🛡️", minScore: 13000, speed: 0.45, words: [
+            {en:"Ask",tr:"Sormak"},{en:"Need",tr:"İhtiyaç duymak"},{en:"Keep",tr:"Tutmak"},{en:"Bring",tr:"Getirmek"},{en:"Leave",tr:"Ayrılmak"},{en:"President",tr:"Başkan"},{en:"Nation",tr:"Millet"},{en:"Freedom",tr:"Özgürlük"},{en:"Soldier",tr:"Asker"},{en:"Win",tr:"Kazanmak"},{en:"Health",tr:"Sağlık"},{en:"Disease",tr:"Hastalık"},{en:"Operation",tr:"Ameliyat"},{en:"Wall",tr:"Duvar"},{en:"Floor",tr:"Zemin"},{en:"Tower",tr:"Kule"},{en:"Early",tr:"Erken"},{en:"Late",tr:"Geç"},{en:"Usually",tr:"Genellikle"},{en:"Safe",tr:"Güvenli"},{en:"Build",tr:"İnşa etmek"}
+        ]},
+        { name: "TEĞMEN 🦅", minScore: 20000, speed: 0.48, words: [
+            {en:"Know",tr:"Bilmek"},{en:"Learn",tr:"Öğrenmek"},{en:"Understand",tr:"Anlamak"},{en:"Believe",tr:"İnanmak"},{en:"Feel",tr:"Hissetmek"},{en:"Menu",tr:"Menü"},{en:"Author",tr:"Yazar"},{en:"Poem",tr:"Şiir"},{en:"Novel",tr:"Roman"},{en:"Famous",tr:"Ünlü"},{en:"Sound",tr:"Ses"},{en:"Word",tr:"Kelime"},{en:"Language",tr:"Dil"},{en:"Advice",tr:"Tavsiye"},{en:"Student",tr:"Öğrenci"},{en:"Homework",tr:"Ödev"},{en:"Library",tr:"Kütüphane"}
+        ]},
+        { name: "YÜZBAŞI ⚓", minScore: 30000, speed: 0.52, words: [
+            {en:"Sale",tr:"İndirim"},{en:"Free",tr:"Ücretsiz"},{en:"Tired",tr:"Yorgun"},{en:"Energy",tr:"Enerji"},{en:"Center",tr:"Merkez"},{en:"Bottom",tr:"Dip"},{en:"Outside",tr:"Dışarı"},{en:"Fix",tr:"Tamir etmek"},{en:"Wash",tr:"Yıkamak"},{en:"Shape",tr:"Şekil"},{en:"Hole",tr:"Delik"},{en:"Target",tr:"Hedef"},{en:"Skill",tr:"Yetenek"},{en:"Traffic",tr:"Trafik"},{en:"Clear",tr:"Net"},{en:"Narrow",tr:"Dar"},{en:"Thick",tr:"Yoğun"}
+        ]},
+        { name: "BİNBAŞI ⚔️🔥", minScore: 42000, speed: 0.56, words: [
+            {en:"Server",tr:"Garson"},{en:"Flight",tr:"Uçuş"},{en:"Arrive",tr:"Varmak"},{en:"Folder",tr:"Klasör"},{en:"Keyboard",tr:"Klavye"},{en:"Password",tr:"Şifre"},{en:"Search",tr:"Aramak"},{en:"Delete",tr:"Silmek"},{en:"Brain",tr:"Beyin"},{en:"Injury",tr:"Yaralanma"},{en:"Lawyer",tr:"Avukat"},{en:"Evidence",tr:"Delil"},{en:"Storm",tr:"Fırtına"},{en:"Society",tr:"Toplum"},{en:"Exchange",tr:"Değişim"},{en:"Pharmacy",tr:"Eczane"},{en:"Safety",tr:"Güvenlik"}
+        ]},
+        { name: "YARBAY 🎖️✨", minScore: 56000, speed: 0.60, words: [
+            {en:"Director",tr:"Yönetmen"},{en:"Agent",tr:"Ajan"},{en:"Expert",tr:"Uzman"},{en:"Guard",tr:"Muhafız"},{en:"Modest",tr:"Mütevazı"},{en:"Choose",tr:"Seçmek"},{en:"Decide",tr:"Karar vermek"},{en:"Balcony",tr:"Balkon"},{en:"Science",tr:"Bilim"},{en:"Theory",tr:"Teori"},{en:"Delivery",tr:"Teslimat"},{en:"Label",tr:"Etiket"},{en:"Route",tr:"Güzergah"},{en:"Claim",tr:"İddia etmek"}
+        ]},
+        { name: "ALBAY 🎖️🦅", minScore: 72000, speed: 0.75, words: [
+            {en:"Offer",tr:"Teklif etmek"},{en:"Accept",tr:"Kabul etmek"},{en:"Refuse",tr:"Reddetmek"},{en:"Suggest",tr:"Önermek"},{en:"Prove",tr:"Kanıtlamak"},{en:"Point",tr:"Husus"},{en:"Bitter",tr:"Acı"},{en:"Scanner",tr:"Tarayıcı"},{en:"Vivid",tr:"Canlı"},{en:"Touch",tr:"Dokunmak"},{en:"Grab",tr:"Kapmak"},{en:"Surgery",tr:"Ameliyat"},{en:"Needle",tr:"İğne"},{en:"Worth",tr:"Değer"},{en:"Council",tr:"Meclis"}
+        ]},
+        { name: "GENERAL 🎖️🔥", minScore: 90000, speed: 0.90, words: [
+            {en:"Similar",tr:"Benzer"},{en:"Different",tr:"Farklı"},{en:"Common",tr:"Yaygın"},{en:"Stir",tr:"Karıştırmak"},{en:"Chop",tr:"Doğramak"},{en:"Peel",tr:"Soymak"},{en:"Century",tr:"Yüzyıl"},{en:"Relic",tr:"Kalıntı"},{en:"Grief",tr:"Keder"},{en:"Envy",tr:"Kıskançlık"},{en:"Rough",tr:"Pürüzlü"},{en:"Cheat",tr:"Kopya çekmek"},{en:"Shield",tr:"Kalkan"},{en:"Weapon",tr:"Silah"}
+        ]},
+        { name: "MAREŞAL 🎖️👑", minScore: 110000, speed: 1.10, words: [
+            {en:"Seal",tr:"Mühür"},{en:"Fate",tr:"Kader"},{en:"Surgeon",tr:"Cerrah"},{en:"Lens",tr:"Mercek"},{en:"Greet",tr:"Selamlamak"},{en:"Invite",tr:"Davet etmek"},{en:"Sponge",tr:"Sünger"},{en:"Scream",tr:"Çığlık atmak"},{en:"Blink",tr:"Göz kırpmak"},{en:"Ray",tr:"Işın"},{en:"Future",tr:"Gelecek"},{en:"Heal",tr:"İyileşmek"},{en:"Pollen",tr:"Polen"},{en:"Apron",tr:"Önlük"}
+        ]},
+        { name: "YILDIZ 🎖️🌟", minScore: 135000, speed: 1.30, words: [
+            {en:"Elite",tr:"Seçkin"},{en:"Noble",tr:"Soylu"},{en:"Rebel",tr:"İsyancı"},{en:"Analyze",tr:"Analiz etmek"},{en:"Define",tr:"Tanımlamak"},{en:"Journey",tr:"Seyahat"},{en:"Harbor",tr:"Liman"},{en:"Sphere",tr:"Küre"},{en:"Cylinder",tr:"Silindir"},{en:"Glow",tr:"Parıltı"},{en:"Bounce",tr:"Zıplamak"},{en:"Genre",tr:"Tür"},{en:"Secure",tr:"Emniyetli"},{en:"Issue",tr:"Mesele"}
+        ]},
+        { name: "ELMAS 💎✨", minScore: 165000, speed: 1.60, words: [
+            {en:"Goal",tr:"Hedef"},{en:"Velvet",tr:"Kadife"},{en:"Jewel",tr:"Mücevher"},{en:"Region",tr:"Bölge"},{en:"Valley",tr:"Vadi"},{en:"President",tr:"Başkan"},{en:"Freedom",tr:"Özgürlük"},{en:"Operation",tr:"Ameliyat"},{en:"Believe",tr:"İnanmak"},{en:"Fridge",tr:"Buzdolabı"},{en:"Language",tr:"Dil"},{en:"Homework",tr:"Ödev"},{en:"Library",tr:"Kütüphane"},{en:"Battery",tr:"Pil"},{en:"Fix",tr:"Tamir etmek"}
+        ]}
+    ];
+
+    let currentRankIdx = 0;
+    let score = 0, health = 5, activeEnemies = [], enemyCounter = 0, isGameOver = false;
+    let isFrozen = false;
+    const bombColors = ['#FF006E', '#ADFF2F', '#FFD700', '#BF00FF'];
+    const ICE_COLOR = '#00f0ff';
+    const FIRE_COLOR = '#ff4500';
+
+    function triggerExplosion(x, y, color) {
+        for(let i=0; i<15; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.cssText = `left:${x}px; top:${y}px; width:8px; height:8px; background:${color}; --tx:${(Math.random()-0.5)*300}px; --ty:${(Math.random()-0.5)*300}px; animation: explode-1 0.6s forwards; box-shadow: 0 0 15px ${color};`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 600);
+        }
+    }
+
+    function createLightning() {
+        const svg = document.createElementNS("http://w3.org", "svg");
+        svg.setAttribute("class", "lightning-svg");
+        let startX = Math.random() * window.innerWidth;
+        let points = `M ${startX} 0`;
+        let curX = startX, curY = 0;
+        for (let i = 0; i < 15; i++) {
+            curX += (Math.random() - 0.5) * 150;
+            curY += window.innerHeight / 15;
+            points += ` L ${curX} ${curY}`;
+        }
+        const path = document.createElementNS("http://w3.org", "path");
+        path.setAttribute("d", points);
+        path.setAttribute("stroke", "#ff3131");
+        path.setAttribute("stroke-width", "4");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+        document.getElementById('damage-layer').appendChild(svg);
+        setTimeout(() => svg.remove(), 350);
+    }
+
+    function spawn() {
+        if(isGameOver || isFrozen) return;
+        const currentWords = RANKS[currentRankIdx].words;
+        const word = currentWords[Math.floor(Math.random() * currentWords.length)];
+        
+        let color = bombColors[Math.floor(Math.random() * bombColors.length)];
+        let type = 'normal';
+        const rand = Math.random();
+        if(rand < 0.08) { color = ICE_COLOR; type = 'ice'; }
+        else if(rand < 0.15) { color = FIRE_COLOR; type = 'fire'; }
+
+        const el = document.createElement('div');
+        el.className = 'bomb';
+        if(type !== 'normal') {
+            el.style.animation = 'heavy-shake 0.5s infinite, special-pulse 1s infinite';
+            el.style.borderWidth = '4px';
+        }
+        el.style.color = color; el.style.borderColor = color;
+        el.innerHTML = `<span>${word.en}</span>`;
+        el.style.left = (15 + Math.random() * 70) + '%';
+        el.style.top = '-100px';
+        document.getElementById('warzone').appendChild(el);
+        activeEnemies.push({ el, tr: word.tr.toLocaleLowerCase('tr-TR'), y: -100, speed: RANKS[currentRankIdx].speed, type: type });
+    }
+
+    function update() {
+        if(isGameOver || isFrozen) {
+            if(!isGameOver) requestAnimationFrame(update);
+            return;
+        }
+        for (let i = activeEnemies.length - 1; i >= 0; i--) {
+            let b = activeEnemies[i];
+            b.y += b.speed;
+            b.el.style.top = b.y + 'px';
+            if(b.y > window.innerHeight - 160) {
+                takeDamage();
+                b.el.remove();
+                activeEnemies.splice(i, 1);
+            }
+        }
+        checkRankUp();
+        requestAnimationFrame(update);
+    }
+
+    function freezeScreen() {
+        isFrozen = true;
+        document.body.style.boxShadow = "inset 0 0 150px #00f0ff";
+        document.body.style.backgroundColor = "#001a2e";
+        setTimeout(() => {
+            isFrozen = false;
+            document.body.style.boxShadow = "none";
+            document.body.style.backgroundColor = "#020205";
+        }, 5000);
+    }
+
+    function nukeScreen() {
+        const enemiesToKill = [...activeEnemies];
+        enemiesToKill.forEach(b => {
+            const rect = b.el.getBoundingClientRect();
+            triggerExplosion(rect.left + rect.width/2, rect.top + rect.height/2, FIRE_COLOR);
+            score += 150;
+            b.el.remove();
+        });
+        activeEnemies = [];
+        document.getElementById('score').innerText = score.toString().padStart(4, '0');
+        const flash = document.createElement('div');
+        flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:1000; pointer-events:none;";
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 100);
+    }
+
+    function takeDamage() {
+        if(isGameOver) return;
+        health--;
+        document.getElementById('hp').innerText = (health * 20) + "%";
+        document.body.classList.remove('shake');
+        void document.body.offsetWidth;
+        document.body.classList.add('shake');
+        createLightning();
+        if(health <= 0) {
+            isGameOver = true;
+            document.getElementById('game-over').style.display = 'flex';
+            document.getElementById('death-msg').innerText = deathMessages[Math.floor(Math.random() * deathMessages.length)];
+        }
+    }
+
+    function checkRankUp() {
+        if(currentRankIdx < RANKS.length - 1) {
+            if(score >= RANKS[currentRankIdx + 1].minScore) {
+                currentRankIdx++;
+                const overlay = document.getElementById('rank-up-overlay');
+                document.getElementById('next-rank-name').innerText = RANKS[currentRankIdx].name;
+                document.getElementById('rank-display').innerText = RANKS[currentRankIdx].name;
+                overlay.style.display = 'flex';
+                setTimeout(() => overlay.style.display = 'none', 2500);
+                clearInterval(spawnTimer);
+                spawnTimer = setInterval(spawn, Math.max(1000, 3000 - (currentRankIdx * 150)));
+            }
+        }
+    }
+
+    document.getElementById('input-box').addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !isGameOver) {
+            const val = e.target.value.toLocaleLowerCase('tr-TR').trim();
+            const idx = activeEnemies.findIndex(b => b.tr === val);
+            if(idx > -1) {
+                const b = activeEnemies[idx];
+                const rect = b.el.getBoundingClientRect();
+                triggerExplosion(rect.left + rect.width/2, rect.top + rect.height/2, b.el.style.color);
+                
+                if(b.type === 'ice') freezeScreen();
+                if(b.type === 'fire') nukeScreen();
+
+                score += 150;
+                document.getElementById('score').innerText = score.toString().padStart(4, '0');
+                b.el.remove();
+                activeEnemies.splice(idx, 1);
+            }
+            e.target.value = '';
+        }
+    });
+
+    let spawnTimer = setInterval(spawn, 3000);
+    update();
+</script>
+</body>
+</html>

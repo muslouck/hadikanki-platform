@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f97316">
+<!-- FINAL OFFLINE: Bu dosyada harici internet bağlantısı yoktur. Sesler WebAudio ile üretilir. -->
+<title>Kelime Arena - Çengel Bulmaca</title>
+<style>
+:root{--bg:#3b1d0d;--card:rgba(255,255,255,.12);--line:rgba(255,255,255,.22);--text:#fff7ed;--muted:#ffedd5;--gold:#fde68a;--cyan:#22d3ee;--pink:#f97316;--green:#16a34a;--red:#dc2626;--cell:#fff7ed;--ink:#431407}
+*{box-sizing:border-box} html,body{height:100%;} body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 18% 12%,rgba(217,119,6,.34) 0,transparent 30%),radial-gradient(circle at 84% 18%,rgba(180,83,9,.28) 0,transparent 32%),radial-gradient(circle at 48% 110%,rgba(120,53,15,.38) 0,transparent 36%),linear-gradient(135deg,#3f1f0f,#7c3f18 48%,#b66a2c);overflow:hidden}
+body:before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,244,230,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,244,230,.035) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,black,transparent 90%);pointer-events:none}.app{height:100dvh;padding:14px;display:grid;grid-template-rows:auto 1fr;gap:12px;position:relative}.top{display:grid;grid-template-columns:minmax(210px,1fr) auto minmax(280px,1.1fr);align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(255,237,213,.18);border-radius:26px;background:linear-gradient(135deg,rgba(120,53,15,.72),rgba(67,32,14,.56));box-shadow:0 24px 80px rgba(55,25,10,.38);backdrop-filter:blur(16px)}.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#f59e0b,#ef4444,#7c3aed);box-shadow:0 12px 34px rgba(245,158,11,.25);font-size:28px}.brand h1{margin:0;font-size:clamp(20px,2.3vw,34px);letter-spacing:-.04em;white-space:nowrap}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}select,button{border:1px solid var(--line);background:rgba(255,255,255,.12);color:#fff;border-radius:15px;padding:10px 12px;font-weight:900;box-shadow:0 12px 28px rgba(0,0,0,.18)}option{color:#111827}button{cursor:pointer;transition:.15s transform,.15s background}button:hover{transform:translateY(-1px);background:rgba(255,255,255,.2)}.primary{border:0;background:linear-gradient(135deg,#f59e0b,#ef4444)}.success{border:0;background:linear-gradient(135deg,#10b981,#06b6d4)}.game{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(260px,24vw,340px);gap:12px}.boardCard,.side{min-height:0;border:1px solid rgba(255,237,213,.16);border-radius:28px;background:rgba(74,35,16,.58);box-shadow:0 28px 90px rgba(55,25,10,.34);backdrop-filter:blur(18px);overflow:hidden}.boardCard{display:grid;grid-template-rows:auto 1fr auto}.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}.stat{border:1px solid var(--line);background:rgba(255,255,255,.09);border-radius:18px;padding:9px;text-align:center}.stat b{display:block;font-size:clamp(18px,2vw,26px);line-height:1}.stat span{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.05em}.stage{min-height:0;padding:8px 12px 10px;display:flex;align-items:center;justify-content:center}.boardFrame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:26px;background:radial-gradient(circle at 50% 50%,rgba(34,211,238,.12),rgba(255,255,255,.035));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);overflow:hidden}.crossword{display:grid;gap:2px;touch-action:manipulation;user-select:none;max-width:100%;max-height:100%}.cell{position:relative;aspect-ratio:1/1;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}.cell.filled{border-radius:8px;background:linear-gradient(180deg,#fffaf3,#f3d5b6);box-shadow:inset 0 -3px 0 rgba(92,43,16,.16),0 8px 16px rgba(73,34,15,.22);border:1px solid rgba(255,238,210,.76)}.cell.active{outline:3px solid rgba(255,209,102,.85);z-index:2}.cell.same{box-shadow:0 0 0 3px rgba(34,211,238,.38),inset 0 -3px 0 rgba(0,0,0,.14)}.num{position:absolute;top:2px;left:4px;color:#111827;font-size:9px;font-weight:1000;z-index:3}.letter{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;text-align:center;text-transform:uppercase;color:var(--ink);font-size:calc(var(--cellSize) * .58);font-weight:1000;outline:none;padding-top:10%;font-family:Arial Black,Arial,sans-serif}.letter.correct{color:#064e3b;background:rgba(34,197,94,.28)}.letter.wrong{color:#7f1d1d;background:rgba(239,68,68,.30)}.cell.filled.correctCell{background:linear-gradient(180deg,#bbf7d0,#22c55e);border-color:rgba(134,239,172,.95);box-shadow:inset 0 -3px 0 rgba(6,78,59,.22),0 0 16px rgba(34,197,94,.35)}.cell.filled.wrongCell{background:linear-gradient(180deg,#fecaca,#ef4444);border-color:rgba(254,202,202,.95);box-shadow:inset 0 -3px 0 rgba(127,29,29,.24),0 0 16px rgba(239,68,68,.35)}.hintbar{padding:0 14px 12px;color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}.side{display:grid;grid-template-rows:auto 1fr}.tabs{display:flex;gap:8px;padding:12px 12px 8px;background:rgba(124,45,18,.36)}.tab{flex:1;padding:10px;border-radius:14px;font-size:12px}.tab.on{background:#fff;color:#111827}.clues{overflow:auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:9px}.clue{border:1px solid var(--line);background:rgba(255,255,255,.09);border-radius:18px;padding:11px;transition:.15s}.clue.focus,.clue:hover{background:rgba(255,255,255,.17);border-color:rgba(255,209,102,.48)}.clueTop{display:flex;gap:8px;align-items:flex-start}.no{background:linear-gradient(135deg,#ffd166,#fb7185);color:#111827;border-radius:11px;padding:5px 8px;font-weight:1000}.txt{font-weight:900;line-height:1.28}.mini{font-size:11px;color:var(--muted);margin-top:3px}.answerRow{display:flex;gap:7px;align-items:center;margin-top:9px}.small{font-size:11px;padding:6px 8px;border-radius:10px}.ans{filter:blur(6px);user-select:none;color:#fde68a;font-weight:1000}.ans.show{filter:none;user-select:text}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(2,6,23,.95);border:1px solid var(--line);border-radius:16px;padding:12px 16px;box-shadow:0 18px 60px rgba(0,0,0,.4);display:none;z-index:50}.toast.show{display:block}.installNote{font-size:11px;color:var(--muted)}.designer{position:relative;justify-self:end;align-self:start;margin-top:-2px;margin-right:4px;font-size:18px;font-weight:1000;letter-spacing:.02em;color:#ffffff;padding:13px 26px 14px;border-radius:999px;border:2px solid rgba(45,255,236,.95);background:linear-gradient(135deg,rgba(130,91,66,.92),rgba(103,78,56,.9) 48%,rgba(150,83,40,.88));box-shadow:0 0 0 1px rgba(255,118,218,.82),0 0 22px rgba(45,255,236,.72),0 0 42px rgba(255,92,206,.42),inset 0 0 22px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.28);text-shadow:0 0 8px rgba(255,255,255,.78),0 2px 8px rgba(0,0,0,.55);white-space:nowrap;overflow:hidden;min-width:250px;text-align:center}.designer .bolt{display:inline-block;margin:0 8px;color:#22ffcf;text-shadow:0 0 8px #22ffcf,0 0 16px #ff4fd8,0 0 28px rgba(255,255,255,.58);filter:drop-shadow(0 0 8px rgba(34,255,207,.85))}.designer span{font-family:'Arial Black',Impact,Arial,sans-serif;color:#ffffff}.designer b{font-family:'Arial Black',Impact,Arial,sans-serif;font-weight:1000;letter-spacing:.035em;background:linear-gradient(90deg,#fff04a,#ffd13b,#fff16c,#ffcc2e);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 7px rgba(255,238,74,.92))}.designer:before{content:"";position:absolute;inset:-3px;border-radius:999px;background:linear-gradient(90deg,#00ffe1,#ff54d5,#00ffe1);z-index:-1;filter:blur(8px);opacity:.78;pointer-events:none}.designer:after{content:"";position:absolute;inset:3px;border-radius:999px;border:1px solid rgba(255,255,255,.23);box-shadow:inset 0 0 18px rgba(34,255,207,.18);pointer-events:none}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:999px}
+@media(max-width:900px){.designer{justify-self:start;align-self:center;margin-left:0;margin-top:0;font-size:16px;min-width:220px;padding:11px 20px}.top{grid-template-columns:1fr;align-items:flex-start}.actions{justify-content:flex-start}.brand h1{white-space:normal}body{overflow:auto}.app{height:auto;min-height:100dvh}.game{grid-template-columns:1fr;grid-template-rows:62dvh 38dvh}.side{min-height:0}.hud{grid-template-columns:repeat(2,1fr)}.hintbar{display:none}}
+@media(max-width:520px){.designer{font-size:14px;padding:9px 14px;border-radius:999px;min-width:190px}.app{padding:8px;gap:8px}.top{border-radius:20px}.logo{width:42px;height:42px;border-radius:14px}.actions select,.actions button{font-size:12px;padding:9px 10px}.game{grid-template-rows:58dvh 42dvh}.boardCard,.side{border-radius:20px}.hud{padding:8px;gap:6px}.stage{padding:5px}.num{font-size:7px}.crossword{gap:1px}.cell,.cell.filled{border-radius:5px}}
+
+/* APK sürümü son görsel ayarlar */
+.top{grid-template-columns:minmax(260px,1fr) auto auto;background:linear-gradient(90deg,#71340f,#8a4519 55%,#6b300f);border-radius:0 0 4px 4px;padding:10px 14px;box-shadow:0 8px 28px rgba(52,22,5,.35)}
+.logo{border-radius:14px}.brand h1{font-size:20px}.brand p{font-size:12px;color:#fff7ed}.designer{justify-self:end;align-self:center;font-size:18px;border-radius:26px;padding:11px 28px;color:#fff;background:rgba(255,255,255,.10);border:1px solid rgba(125,249,255,.85);box-shadow:0 0 8px #22d3ee,0 0 18px rgba(34,211,238,.85),inset 0 0 14px rgba(255,255,255,.25);text-shadow:0 0 7px #fff;font-family:Arial Black,Impact,Arial,sans-serif;letter-spacing:.3px}.designer b{color:#ffe45e;text-shadow:0 0 6px #ffe45e,0 0 16px #f97316}.designer .bolt{color:#67e8f9;text-shadow:0 0 8px #67e8f9}.actions{justify-self:end}.cell,input.cellInput{aspect-ratio:1/1!important;border-radius:8px!important}
+@media(max-width:900px){.top{grid-template-columns:1fr;gap:8px}.designer{justify-self:start;font-size:15px;padding:8px 18px}.actions{justify-self:start;display:flex;flex-wrap:wrap}}
+
+/* ===== TAM OYUN ARAYÜZÜ + KARE HÜCRELER v4 ===== */
+:root{
+  --bg:#241009;--card:rgba(50,22,10,.74);--line:rgba(255,216,166,.24);
+  --text:#fff8ed;--muted:#ffe0bd;--gold:#ffd166;--cyan:#53fff1;--pink:#ff5ebc;
+  --cell:#fff3df;--ink:#2b1207;
+}
+body{
+  background:
+    radial-gradient(circle at 18% 12%,rgba(255,190,92,.20) 0,transparent 28%),
+    radial-gradient(circle at 82% 8%,rgba(255,94,188,.10) 0,transparent 27%),
+    radial-gradient(circle at 50% 112%,rgba(255,151,54,.18) 0,transparent 35%),
+    linear-gradient(135deg,#241009 0%,#3b1b0c 42%,#6b3518 100%) !important;
+}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at center,transparent 45%,rgba(0,0,0,.30));z-index:0}.app{z-index:1}
+.top{
+  grid-template-columns:minmax(240px,1fr) auto minmax(280px,.9fr) !important;
+  border-radius:22px !important;
+  background:linear-gradient(135deg,rgba(93,43,18,.92),rgba(45,20,10,.78)) !important;
+  border:1px solid rgba(255,213,151,.26) !important;
+  box-shadow:0 16px 55px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  position:relative;overflow:visible;
+}
+.logo{border-radius:16px!important;background:linear-gradient(135deg,#ffb03b,#ef4444,#9b5cff)!important;box-shadow:0 0 22px rgba(255,176,59,.42), inset 0 1px 0 rgba(255,255,255,.25)!important}
+.brand h1{font-family:Arial Black,Impact,Arial,sans-serif;text-shadow:0 2px 0 rgba(0,0,0,.28),0 0 12px rgba(255,209,102,.22)}
+.designer{
+  justify-self:end!important;align-self:start!important;margin-top:0!important;margin-right:0!important;
+  transform:translateY(-2px);font-size:16px!important;min-width:236px!important;padding:10px 20px!important;
+  border-radius:999px!important;background:linear-gradient(135deg,rgba(88,68,52,.92),rgba(112,78,50,.86))!important;
+  border:2px solid rgba(83,255,241,.95)!important;
+  box-shadow:0 0 0 1px rgba(255,94,188,.75),0 0 18px rgba(83,255,241,.68),0 0 32px rgba(255,94,188,.28),inset 0 0 18px rgba(255,255,255,.12)!important;
+}
+.actions button,.actions select{border-radius:14px!important;background:rgba(255,248,237,.12)!important}.actions .primary{background:linear-gradient(135deg,#ffb03b,#e0521b)!important}.actions .success{background:linear-gradient(135deg,#18c99a,#11a8d8)!important}
+.game{grid-template-columns:minmax(0,1fr) clamp(270px,23vw,330px)!important}.boardCard,.side{border-radius:24px!important;background:linear-gradient(180deg,rgba(64,29,13,.78),rgba(35,16,8,.72))!important;border:1px solid rgba(255,213,151,.22)!important;box-shadow:0 18px 70px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10)!important}.stat{border-radius:16px!important;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))!important}.stat b{color:#fff2b8;text-shadow:0 0 12px rgba(255,209,102,.42)}
+.boardFrame{border-radius:22px!important;background:radial-gradient(circle at center,rgba(255,209,102,.10),rgba(255,255,255,.035) 38%,rgba(0,0,0,.12))!important;border:1px solid rgba(255,223,176,.14)!important}
+.crossword{gap:2px!important;align-items:center;justify-content:center}.cell{aspect-ratio:1/1!important;border-radius:6px!important;width:var(--cellSize)!important;height:var(--cellSize)!important;background:rgba(255,255,255,.055)!important}.cell.filled{border-radius:6px!important;background:linear-gradient(180deg,#fff6e8 0%,#f3d2ad 100%)!important;border:1px solid rgba(255,241,217,.90)!important;box-shadow:inset 0 -3px 0 rgba(91,43,18,.18),0 5px 12px rgba(0,0,0,.24)!important}.letter{border-radius:6px!important;line-height:1!important;padding:0!important;display:block}.cell.active{outline:3px solid rgba(255,209,102,.95)!important;box-shadow:0 0 18px rgba(255,209,102,.55)!important}.cell.same{box-shadow:0 0 0 3px rgba(83,255,241,.46),inset 0 -3px 0 rgba(0,0,0,.14)!important}.num{font-size:8px!important;top:1px!important;left:3px!important}.tabs{background:rgba(70,31,13,.42)!important}.tab{border-radius:14px!important}.tab.on{background:linear-gradient(135deg,#fff5de,#ffd166)!important;color:#261004!important}.clue{border-radius:16px!important;background:rgba(255,248,237,.09)!important}.clue.focus,.clue:hover{background:rgba(255,209,102,.15)!important}.no{border-radius:9px!important;background:linear-gradient(135deg,#ffd166,#ff8a4c)!important}.toast{border-radius:16px!important;background:rgba(28,13,6,.96)!important;border-color:rgba(255,209,102,.30)!important}
+@keyframes arenaPulse{0%,100%{filter:drop-shadow(0 0 5px rgba(255,209,102,.30))}50%{filter:drop-shadow(0 0 15px rgba(83,255,241,.38))}}.designer,.logo{animation:arenaPulse 2.8s ease-in-out infinite}
+@media(max-width:900px){.top{grid-template-columns:1fr!important}.designer{justify-self:end!important;align-self:start!important;font-size:14px!important;min-width:200px!important;padding:8px 14px!important}.game{grid-template-rows:60dvh 40dvh!important}.cell,.cell.filled,.letter{border-radius:5px!important}}
+@media(max-width:520px){.designer{justify-self:start!important;font-size:13px!important;min-width:180px!important}.cell,.cell.filled,.letter{border-radius:4px!important}.crossword{gap:1px!important}}
+
+
+/* KELİME ARENA INTRO */
+.introScreen{
+  position:fixed; inset:0; z-index:20000;
+  display:grid; place-items:center;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(253,186,116,.38), transparent 28%),
+    radial-gradient(circle at 80% 24%, rgba(251,146,60,.22), transparent 30%),
+    linear-gradient(135deg,#2b160c,#5f2d12 50%,#8a4a20);
+  overflow:hidden;
+  transition: opacity .65s ease, visibility .65s ease;
+}
+.introScreen.hide{opacity:0; visibility:hidden; pointer-events:none;}
+.introScreen:before{
+  content:""; position:absolute; inset:-40%;
+  background:conic-gradient(from 180deg, transparent, rgba(255,255,255,.12), transparent, rgba(253,186,116,.12), transparent);
+  animation:introSpin 8s linear infinite;
+}
+.introScreen:after{
+  content:""; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,237,213,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,237,213,.06) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(circle,black 0 55%,transparent 78%);
+}
+.introCard{
+  position:relative; z-index:2; width:min(92vw,680px); padding:34px 28px;
+  border:1px solid rgba(255,237,213,.24); border-radius:34px;
+  background:rgba(67,32,14,.56); backdrop-filter:blur(20px);
+  box-shadow:0 35px 120px rgba(0,0,0,.42), inset 0 0 40px rgba(255,237,213,.06);
+  text-align:center;
+  animation:introPop .8s cubic-bezier(.2,1.2,.2,1) both;
+}
+.introIcon{
+  width:96px; height:96px; margin:0 auto 16px; display:grid; place-items:center;
+  border-radius:28px; font-size:50px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444,#7c3aed);
+  box-shadow:0 0 28px rgba(245,158,11,.45), 0 18px 50px rgba(0,0,0,.32);
+  animation:introPulse 1.55s ease-in-out infinite;
+}
+.introTitle{
+  margin:0; font-size:clamp(38px,7vw,78px); line-height:.95; letter-spacing:-.07em;
+  background:linear-gradient(90deg,#fff7ed,#fde68a,#fb923c,#fff7ed);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 24px rgba(251,146,60,.25);
+}
+.introSub{margin:14px 0 0;color:#ffedd5;font-size:clamp(14px,2vw,18px);font-weight:800;}
+.introDesigner{
+  display:inline-flex; align-items:center; gap:7px; margin-top:18px; padding:9px 18px;
+  border-radius:999px; border:1px solid rgba(34,211,238,.55);
+  background:rgba(0,0,0,.22); color:#fff; font-size:18px; font-weight:950;
+  box-shadow:0 0 16px rgba(34,211,238,.38), inset 0 0 12px rgba(34,211,238,.18);
+}
+.introDesigner b{color:#fde68a;text-shadow:0 0 10px #fde68a,0 0 22px #f97316;}
+.introBtn{
+  margin-top:24px; border:0; padding:13px 26px; border-radius:18px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff;
+  font-size:16px; font-weight:950; cursor:pointer;
+  box-shadow:0 18px 45px rgba(239,68,68,.26);
+}
+.introLoading{width:min(360px,72vw);height:8px;border-radius:999px;margin:22px auto 0;background:rgba(255,255,255,.14);overflow:hidden;}
+.introLoading span{display:block;height:100%;width:45%;border-radius:999px;background:linear-gradient(90deg,#fde68a,#fb923c,#22d3ee);animation:introLoad 2.2s ease-in-out infinite;}
+@keyframes introSpin{to{transform:rotate(360deg)}}
+@keyframes introPop{from{transform:scale(.86) translateY(18px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes introPulse{50%{transform:translateY(-5px) scale(1.05);box-shadow:0 0 40px rgba(245,158,11,.62),0 22px 62px rgba(0,0,0,.38)}}
+@keyframes introLoad{0%{transform:translateX(-110%)}50%{transform:translateX(70%)}100%{transform:translateX(240%)}}
+
+
+/* ===== LEVEL 2 OYUN SİSTEMİ ===== */
+.levelHud{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.levelPill{border:1px solid rgba(255,209,102,.36);background:linear-gradient(135deg,rgba(255,209,102,.20),rgba(34,211,238,.12));border-radius:16px;padding:9px 12px;font-weight:1000;box-shadow:0 0 18px rgba(255,209,102,.16)}
+.xpBox{min-width:170px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px;background:rgba(0,0,0,.16)}
+.xpBar{height:10px;border-radius:999px;background:linear-gradient(90deg,#ffd166,#fb923c,#22d3ee);width:0%;transition:width .55s ease;box-shadow:0 0 14px rgba(34,211,238,.35)}
+.xpText{font-size:11px;color:#ffedd5;font-weight:900;text-align:center;margin-top:3px}
+.finishOverlay{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(255,209,102,.18),rgba(0,0,0,.74));opacity:0;visibility:hidden;pointer-events:none;transition:.45s ease;overflow:hidden}
+.finishOverlay.show{opacity:1;visibility:visible;pointer-events:auto}
+.finishCard{width:min(92vw,560px);text-align:center;border-radius:34px;padding:30px 22px;border:1px solid rgba(255,237,213,.28);background:linear-gradient(180deg,rgba(63,31,15,.92),rgba(25,12,6,.88));box-shadow:0 30px 110px rgba(0,0,0,.58),0 0 44px rgba(255,209,102,.22);animation:finishPop .65s cubic-bezier(.2,1.25,.2,1) both}
+.finishCup{font-size:76px;filter:drop-shadow(0 0 18px rgba(255,209,102,.72));animation:cupBounce 1.15s ease-in-out infinite}
+.finishTitle{font-family:Arial Black,Impact,Arial,sans-serif;font-size:clamp(34px,7vw,62px);line-height:.95;margin:8px 0;background:linear-gradient(90deg,#fff7ed,#fde68a,#fb923c,#fff7ed);-webkit-background-clip:text;background-clip:text;color:transparent}
+.finishMsg{font-size:18px;color:#ffedd5;font-weight:900;margin:10px 0 12px}.stars{font-size:38px;letter-spacing:4px;text-shadow:0 0 18px rgba(255,209,102,.9);margin:8px 0}.reward{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}.reward span{border-radius:999px;padding:9px 14px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);font-weight:1000}.nextBtn{margin-top:18px;border:0;border-radius:18px;padding:13px 22px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;font-weight:1000;font-size:16px;cursor:pointer}
+.confetti2{position:fixed;top:-14px;width:9px;height:14px;border-radius:3px;z-index:30001;animation:confettiFall linear forwards}
+.screenShake{animation:screenShake .45s ease}
+@keyframes finishPop{from{transform:scale(.72) translateY(28px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes cupBounce{50%{transform:translateY(-8px) rotate(-5deg)}}
+@keyframes confettiFall{to{transform:translateY(110vh) rotate(820deg)}}
+@keyframes screenShake{0%,100%{transform:translate(0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+@media(max-width:900px){.levelHud{justify-content:flex-start}.finishCup{font-size:62px}.reward span{font-size:13px}}
+
+
+
+/* ===== LEVEL 2: YANLIŞ HARF ÖNERİSİ + İPUCU SİSTEMİ ===== */
+.hintBtn{border:0!important;background:linear-gradient(135deg,#facc15,#fb923c)!important;color:#2b1207!important;box-shadow:0 0 16px rgba(250,204,21,.35)!important}
+.hintBubble{position:fixed;left:50%;top:92px;transform:translateX(-50%) translateY(-8px);z-index:30000;display:none;max-width:min(92vw,460px);padding:12px 16px;border-radius:18px;background:rgba(35,16,8,.96);border:1px solid rgba(255,209,102,.42);box-shadow:0 18px 65px rgba(0,0,0,.42),0 0 24px rgba(250,204,21,.18);color:#fff8ed;font-weight:950;text-align:center}
+.hintBubble.show{display:block;animation:hintPop .25s ease both}.hintBubble b{color:#fde68a;text-shadow:0 0 10px rgba(253,230,138,.75)}
+.cell.filled.hintedCell{animation:hintGlow .9s ease 2;box-shadow:0 0 0 3px rgba(250,204,21,.75),0 0 22px rgba(250,204,21,.65),inset 0 -3px 0 rgba(91,43,18,.18)!important}
+.letter.revealed{color:#78350f!important;background:linear-gradient(180deg,rgba(253,230,138,.78),rgba(251,146,60,.42))!important;text-shadow:0 0 8px rgba(255,255,255,.55)}
+@keyframes hintPop{from{opacity:0;transform:translateX(-50%) translateY(-14px) scale(.94)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes hintGlow{50%{transform:scale(1.08);filter:brightness(1.18)}}
+@media(max-width:520px){.hintBubble{top:76px;font-size:13px;padding:10px 12px}}
+
+
+
+/* ===== LEVEL 4 PROFESYONEL MOBİL OYUN KALİTESİ ===== */
+.proHud{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end;grid-column:1/-1;width:100%;margin-top:6px}.proPill{border:1px solid rgba(255,216,166,.28);background:rgba(255,248,237,.12);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:1000;color:#fff8ed;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}.proPill.good{background:linear-gradient(135deg,rgba(34,197,94,.26),rgba(34,211,238,.18))}.proPill.warn{background:linear-gradient(135deg,rgba(251,191,36,.27),rgba(249,115,22,.15))}.proButton{border:0!important;background:linear-gradient(135deg,#7c3aed,#06b6d4)!important;color:#fff!important}.soundOff{opacity:.55;filter:grayscale(1)}
+.missionBox{margin:0 12px 12px;border:1px solid rgba(255,216,166,.24);border-radius:18px;padding:10px;background:linear-gradient(180deg,rgba(255,248,237,.10),rgba(255,248,237,.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}.missionTitle{display:flex;align-items:center;justify-content:space-between;font-weight:1000;color:#ffe9ba;margin-bottom:8px}.mission{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:8px;border-radius:13px;background:rgba(0,0,0,.13);margin-top:6px;font-size:12px}.mission b{font-size:12px}.mission small{color:#ffedd5}.mission.done{background:rgba(34,197,94,.18);border:1px solid rgba(134,239,172,.35)}
+.coinFly{position:fixed;z-index:25000;font-size:22px;font-weight:1000;pointer-events:none;animation:coinFly .9s ease-out forwards;text-shadow:0 0 14px rgba(255,209,102,.9)}@keyframes coinFly{0%{transform:translate(-50%,-50%) scale(.7);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-145%) scale(1.22);opacity:0}}
+.comboSplash{position:fixed;z-index:26000;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(24px,8vw,58px);font-family:Arial Black,Impact,Arial,sans-serif;font-weight:1000;color:#fff7ad;text-shadow:0 0 14px #f97316,0 0 34px #fb7185,0 4px 0 rgba(0,0,0,.26);pointer-events:none;animation:comboSplash .85s cubic-bezier(.15,1.25,.3,1) forwards}@keyframes comboSplash{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-8deg)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(3deg)}100%{opacity:0;transform:translate(-50%,-95%) scale(.9) rotate(0)}}
+.cell.filled.correctCell{animation:cellPop .23s ease}.cell.filled.wrongCell{animation:cellShake .28s ease}@keyframes cellPop{50%{transform:scale(1.12)}}@keyframes cellShake{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.level4Badge{position:absolute;top:-10px;left:20px;border-radius:999px;padding:5px 10px;background:linear-gradient(135deg,#22d3ee,#7c3aed);font-size:11px;font-weight:1000;box-shadow:0 0 18px rgba(34,211,238,.45)}
+.dailyOverlay{position:fixed;inset:0;display:none;place-items:center;z-index:24000;background:rgba(0,0,0,.62);backdrop-filter:blur(8px)}.dailyOverlay.show{display:grid}.dailyCard{width:min(92vw,420px);border-radius:30px;border:1px solid rgba(255,237,213,.24);background:linear-gradient(180deg,rgba(80,37,16,.96),rgba(32,15,8,.96));padding:24px;text-align:center;box-shadow:0 35px 110px rgba(0,0,0,.48)}.dailyCard h2{margin:0 0 8px;font-size:32px}.dailyPrize{font-size:46px;margin:14px 0;text-shadow:0 0 20px rgba(255,209,102,.85)}.dailyCard button{margin-top:12px;border:0;background:linear-gradient(135deg,#f59e0b,#ef4444);padding:12px 20px;border-radius:16px;color:#fff;font-weight:1000}
+.perfectGlow{animation:perfectGlow 1.25s ease-in-out 2}@keyframes perfectGlow{50%{filter:drop-shadow(0 0 24px rgba(255,209,102,.9)) saturate(1.35)}}
+@media(max-width:900px){.proHud{justify-content:flex-start}.missionBox{margin:8px 12px 12px}.proPill{font-size:11px;padding:6px 8px}}
+
+
+/* MOBİL DOKUNMA İYİLEŞTİRMESİ: sayılar tıklamayı engellemez, tüm hücre seçilebilir */
+.cell.filled{
+  cursor:pointer;
+  -webkit-tap-highlight-color:rgba(255,209,102,.28);
+}
+.num{
+  pointer-events:none !important;
+  user-select:none !important;
+}
+.letter{
+  z-index:2;
+}
+.cell.filled::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:inherit;
+  pointer-events:none;
+}
+
+
+#dailyTasks{
+  position:relative;
+  width:100%;
+  margin-top:5px;
+  font-size:12px;
+  background:rgba(255,255,255,0.08);
+  padding:6px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+}
+
+.task{
+  flex:1;
+  text-align:center;
+  font-size:11px;
+  background:rgba(0,0,0,0.2);
+  padding:4px;
+  border-radius:8px;
+}
+
+
+
+/* ===== FINAL DÜZEN: BULMACA ALANI BÜYÜTÜLDÜ, ÜST MENÜ SADELEŞTİRİLDİ ===== */
+.missionBox,#missionBox,#dailyTasks,.dailyOverlay,#dailyOverlay{display:none!important}
+.app{padding:8px!important;gap:8px!important;grid-template-rows:auto minmax(0,1fr)!important}
+.top{padding:7px 10px!important;gap:8px!important;border-radius:16px!important;grid-template-columns:minmax(160px,.85fr) auto minmax(230px,1fr)!important}
+.logo{width:38px!important;height:38px!important;border-radius:12px!important;font-size:21px!important}.brand{gap:8px!important}.brand h1{font-size:18px!important;line-height:1!important}.brand p{display:none!important}.designer{font-size:12px!important;min-width:160px!important;padding:7px 12px!important;transform:none!important}.designer .bolt{margin:0 4px!important}.actions{gap:5px!important}.actions select,.actions button{padding:7px 8px!important;font-size:11px!important;border-radius:11px!important;box-shadow:none!important}.level4Badge{display:none!important}.proHud{margin-top:4px!important;gap:5px!important;justify-content:flex-end!important}.proPill{font-size:10px!important;padding:5px 7px!important}.proButton{font-size:10px!important;padding:5px 7px!important;border-radius:999px!important}
+.game{grid-template-columns:minmax(0,1fr) clamp(220px,20vw,290px)!important;gap:8px!important}.boardCard{grid-template-rows:auto minmax(0,1fr) auto!important}.hud{padding:7px!important;gap:5px!important}.stat{padding:5px!important;border-radius:12px!important}.stat b{font-size:clamp(15px,1.55vw,21px)!important}.stat span{font-size:8px!important;margin-top:2px!important}.stage{padding:3px 5px 5px!important}.boardFrame{border-radius:18px!important}.hintbar{padding:0 8px 6px!important;font-size:10px!important}.installNote{font-size:10px!important;color:rgba(255,237,213,.55)!important;white-space:nowrap}.tabs{padding:7px 7px 5px!important;gap:5px!important}.tab{padding:7px 6px!important;font-size:11px!important;border-radius:10px!important}.clues{padding:0 7px 7px!important;gap:6px!important}.clue{padding:8px!important;border-radius:12px!important}.txt{font-size:12px!important}.mini{font-size:10px!important}.answerRow{margin-top:6px!important}.small{font-size:10px!important;padding:5px 6px!important}.no{padding:4px 6px!important;border-radius:8px!important}
+.cell,.cell.filled{border-radius:5px!important}.num{font-size:7px!important;top:1px!important;left:2px!important;pointer-events:none!important;user-select:none!important}.letter{font-size:calc(var(--cellSize) * .62)!important;z-index:2!important}
+#introScreen:not(.hide) ~ .app .installNote{display:none!important}
+@media(max-width:900px){.top{grid-template-columns:1fr!important}.designer{display:none!important}.actions{width:100%;justify-content:flex-start!important}.game{grid-template-columns:1fr!important;grid-template-rows:minmax(68dvh,1fr) 26dvh!important}.side{min-height:0!important}.proHud{justify-content:flex-start!important}.hud{grid-template-columns:repeat(4,1fr)!important}.hintbar span:first-child{display:none!important}.installNote{display:block!important;width:100%;text-align:center!important}.stage{padding:2px!important}.app{padding:6px!important}}
+@media(max-width:520px){.top{padding:6px!important;border-radius:14px!important}.logo{width:34px!important;height:34px!important;font-size:19px!important}.brand h1{font-size:16px!important}.actions select,.actions button{font-size:10px!important;padding:6px 7px!important}.proHud{display:flex!important}.proPill{font-size:9px!important;padding:4px 6px!important}.proPill:nth-child(3){display:none!important}.game{grid-template-rows:minmax(70dvh,1fr) 24dvh!important;gap:6px!important}.hud{padding:5px!important}.stat{padding:4px!important}.stat b{font-size:14px!important}.stat span{font-size:7px!important}.hintbar{padding:0 6px 4px!important}.installNote{font-size:9px!important}.tabs{padding:5px!important}.clue{padding:6px!important}.txt{font-size:11px!important}.mini,.answerRow{display:none!important}}
+
+
+/* ÜST SATIR KONTROL DÜZENİ - OYUN ALANINI GENİŞLETİR */
+.top{
+  display:grid !important;
+  grid-template-columns: minmax(170px,1fr) auto !important;
+  gap:8px !important;
+  padding:6px 9px !important;
+  align-items:center !important;
+  min-height:auto !important;
+}
+
+.brand{
+  gap:8px !important;
+  min-width:0 !important;
+}
+
+.logo{
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  border-radius:12px !important;
+  font-size:20px !important;
+}
+
+.brand h1{
+  font-size:16px !important;
+  line-height:1 !important;
+}
+
+.brand p{
+  display:none !important;
+}
+
+.designer{
+  display:none !important;
+}
+
+.actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+  flex-wrap:nowrap !important;
+  overflow-x:auto !important;
+  max-width:100% !important;
+  padding-bottom:1px !important;
+  scrollbar-width:none !important;
+}
+
+.actions::-webkit-scrollbar{
+  display:none !important;
+}
+
+.actions button,
+.actions select{
+  min-height:30px !important;
+  padding:6px 7px !important;
+  font-size:10px !important;
+  border-radius:10px !important;
+  white-space:nowrap !important;
+}
+
+#fullBtn{
+  min-width:31px !important;
+  padding-left:7px !important;
+  padding-right:7px !important;
+}
+
+#fullBtn{
+  font-size:0 !important;
+}
+#fullBtn::after{
+  content:"⛶";
+  font-size:14px !important;
+}
+
+#newBtn,
+#checkBtn,
+#hintBtn{
+  font-size:0 !important;
+}
+#newBtn::after{
+  content:"🎲 Yeni";
+  font-size:10px !important;
+}
+#checkBtn::after{
+  content:"✅ Kontrol";
+  font-size:10px !important;
+}
+#hintBtn::after{
+  content:"💡 İpucu";
+  font-size:10px !important;
+}
+
+/* Mini istatistikler üst satıra sığsın */
+.miniStat,
+.actions .miniStat,
+#coinsBox,#coinBox,#comboBox,#levelBox,
+[id*="coin"],[id*="combo"],[id*="level"]{
+  min-height:30px !important;
+  padding:5px 7px !important;
+  font-size:10px !important;
+  border-radius:10px !important;
+  white-space:nowrap !important;
+}
+
+/* Ana oyun kartında HUD daha az yer kaplasın */
+.hud{
+  padding:6px !important;
+  gap:5px !important;
+}
+
+.stat{
+  padding:5px !important;
+  border-radius:12px !important;
+}
+
+.stat b{
+  font-size:16px !important;
+}
+
+.stat span{
+  font-size:8px !important;
+  margin-top:2px !important;
+}
+
+/* Bulmaca alanı genişlesin */
+.app{
+  gap:6px !important;
+  padding:7px !important;
+}
+
+.game{
+  gap:7px !important;
+}
+
+.stage{
+  padding:3px 5px 6px !important;
+}
+
+.boardFrame{
+  min-height:0 !important;
+}
+
+/* Mobilde üst bar tek satırda kalsın, oyun alanı büyüsün */
+@media(max-width:900px){
+  .top{
+    grid-template-columns: 1fr !important;
+    gap:5px !important;
+  }
+  .actions{
+    justify-content:flex-start !important;
+  }
+  .game{
+    grid-template-rows: 68dvh 32dvh !important;
+  }
+}
+
+@media(max-width:520px){
+  .top{
+    padding:5px 6px !important;
+  }
+  .actions button,
+  .actions select{
+    min-height:28px !important;
+    padding:5px 6px !important;
+    font-size:9px !important;
+  }
+  #newBtn::after,
+  #checkBtn::after,
+  #hintBtn::after{
+    font-size:9px !important;
+  }
+  .game{
+    grid-template-rows: 70dvh 30dvh !important;
+  }
+  .hud{
+    grid-template-columns:repeat(4,1fr) !important;
+  }
+}
+
+
+/* LEVEL 5 - ESKİ SABİT ÜST KADRAJ, DAHA DÜZENLİ */
+.app{
+  padding:7px !important;
+  gap:6px !important;
+}
+
+/* Üst alan sabit, yüzen değil */
+.top{
+  position:relative !important;
+  top:auto !important;
+  left:auto !important;
+  right:auto !important;
+  transform:none !important;
+  width:100% !important;
+  max-width:none !important;
+  height:auto !important;
+  min-height:42px !important;
+  opacity:1 !important;
+  display:grid !important;
+  grid-template-columns:auto 1fr !important;
+  align-items:center !important;
+  gap:8px !important;
+  padding:6px 9px !important;
+  border-radius:16px !important;
+  background:linear-gradient(135deg,rgba(93,43,18,.88),rgba(45,20,10,.74)) !important;
+  border:1px solid rgba(255,213,151,.22) !important;
+  box-shadow:0 10px 34px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  overflow:hidden !important;
+}
+
+/* Sol logo kompakt */
+.brand{
+  display:flex !important;
+  align-items:center !important;
+  gap:7px !important;
+  min-width:0 !important;
+}
+
+.logo{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  border-radius:12px !important;
+  font-size:19px !important;
+}
+
+.brand h1{
+  display:block !important;
+  margin:0 !important;
+  font-size:15px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+
+.brand p,
+.designer{
+  display:none !important;
+}
+
+/* Sağ taraf tek düzenli satır */
+.actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:5px !important;
+  flex-wrap:nowrap !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  scrollbar-width:none !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+.actions::-webkit-scrollbar{
+  display:none !important;
+}
+
+.actions button,
+.actions select{
+  height:31px !important;
+  min-height:31px !important;
+  padding:0 8px !important;
+  border-radius:10px !important;
+  font-size:10px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  box-shadow:none !important;
+}
+
+/* Butonlar ikon + kısa metin */
+#newBtn,
+#checkBtn,
+#hintBtn,
+#fullBtn{
+  width:auto !important;
+  min-width:auto !important;
+  font-size:0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#newBtn::after{content:"🎲 Yeni";font-size:10px!important;}
+#checkBtn::after{content:"✅ Kontrol";font-size:10px!important;}
+#hintBtn::after{content:"💡 İpucu";font-size:10px!important;}
+#fullBtn::after{content:"⛶";font-size:14px!important;}
+
+/* Seçimler dar ve düzgün */
+#mode{
+  max-width:112px !important;
+}
+#size{
+  max-width:70px !important;
+}
+
+/* Mini göstergeler chip gibi dursun */
+.miniStat,
+.actions .miniStat,
+#coinsBox,#coinBox,#comboBox,#levelBox,
+[id*="coin"],[id*="combo"],[id*="level"]{
+  height:31px !important;
+  min-height:31px !important;
+  padding:0 8px !important;
+  border-radius:10px !important;
+  font-size:10px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:rgba(255,255,255,.09) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  white-space:nowrap !important;
+}
+
+/* HUD küçük kalsın; bulmacayı ezmesin */
+.hud{
+  padding:5px !important;
+  gap:5px !important;
+  grid-template-columns:repeat(4,1fr) !important;
+}
+
+.stat{
+  padding:5px !important;
+  border-radius:12px !important;
+}
+
+.stat b{
+  font-size:15px !important;
+}
+
+.stat span{
+  font-size:8px !important;
+  margin-top:1px !important;
+}
+
+/* Oyun alanı eski gibi ama daha geniş */
+.game{
+  grid-template-columns:minmax(0,1fr) clamp(245px,22vw,310px) !important;
+  gap:7px !important;
+}
+
+.stage{
+  padding:3px 5px 6px !important;
+}
+
+.boardCard,.side{
+  border-radius:20px !important;
+}
+
+/* Mobilde üst alan iki minik satıra düşebilir ama düzenli kalır */
+@media(max-width:900px){
+  .top{
+    grid-template-columns:1fr !important;
+    gap:5px !important;
+    padding:6px 7px !important;
+  }
+  .brand{
+    justify-content:flex-start !important;
+  }
+  .actions{
+    justify-content:flex-start !important;
+  }
+  .game{
+    grid-template-columns:1fr !important;
+    grid-template-rows:70dvh 30dvh !important;
+  }
+}
+
+@media(max-width:520px){
+  .top{
+    min-height:38px !important;
+    border-radius:14px !important;
+  }
+  .brand h1{
+    font-size:14px !important;
+  }
+  .logo{
+    width:30px !important;
+    height:30px !important;
+    min-width:30px !important;
+    font-size:17px !important;
+  }
+  .actions{
+    gap:4px !important;
+  }
+  .actions button,
+  .actions select{
+    height:28px !important;
+    min-height:28px !important;
+    padding:0 6px !important;
+    font-size:9px !important;
+  }
+  #newBtn::after,
+  #checkBtn::after,
+  #hintBtn::after{
+    font-size:9px!important;
+  }
+  #mode{
+    max-width:96px !important;
+  }
+  #size{
+    max-width:58px !important;
+  }
+  .game{
+    grid-template-rows:72dvh 28dvh !important;
+  }
+}
+
+</style>
+</head>
+<body>
+<div id="introScreen" class="introScreen">
+  <div class="introCard">
+    <div class="introIcon">🧩</div>
+    <h1 class="introTitle">Kelime Arena</h1>
+    <div class="introSub">İngilizce–Türkçe Çengel Bulmaca Oyunu</div>
+    <div class="introDesigner">⚡ Tasarım: <b>Musluk</b> ⚡</div>
+    <div class="introLoading"><span></span></div>
+    <button id="introStartBtn" class="introBtn">🎮 Oyuna Başla</button>
+  </div>
+</div>
+
+
+<div id="finishOverlay" class="finishOverlay">
+  <div class="finishCard">
+    <div class="finishCup">🏆</div>
+    <div class="finishTitle">LEVEL 4!</div>
+    <div id="finishMsg" class="finishMsg">Bulmaca tamamlandı!</div>
+    <div id="finishStars" class="stars">⭐⭐⭐</div>
+    <div class="reward">
+      <span id="rewardPoint">+0 Puan</span>
+      <span id="rewardXp">+0 XP</span>
+      <span id="rewardLevel">Seviye 1</span>
+    </div>
+    <button id="nextPuzzleBtn" class="nextBtn">🚀 Sonraki Bulmaca</button>
+  </div>
+</div>
+
+
+
+
+<div class="app">
+<header class="top"><div class="brand"><div class="logo">🧩</div><div><h1>Kelime Arena</h1><p>İnternetsiz, tam ekran, oyun tarzı İngilizce–Türkçe çengel bulmaca</p></div></div><div class="designer"><span class="bolt">⚡</span><span>Tasarım:</span> <b>Musluk</b><span class="bolt">⚡</span></div><div class="actions"><select id="mode"><option value="en_tr">İngilizce → Türkçe</option><option value="tr_en">Türkçe → İngilizce</option></select><select id="size"><option value="10">Kolay</option><option value="14" selected>Orta</option><option value="18">Zor</option><option value="22">Uzman</option></select><button class="primary" id="newBtn">🎲 Yeni</button><button class="success" id="checkBtn">✅ Kontrol</button><button class="hintBtn" id="hintBtn">💡 İpucu</button><button id="fullBtn">⛶ Tam ekran</button></div></header>
+<section class="game"><main class="boardCard"><div class="hud"><div class="stat"><b id="wordCount">0</b><span>KELİME</span></div><div class="stat"><b id="filledCount">0</b><span>DOLU HARF</span></div><div class="stat"><b id="score">0%</b><span>BAŞARI</span></div><div class="stat"><b id="timer">00:00</b><span>SÜRE</span></div></div><div class="stage" id="stage"><div class="boardFrame"><div id="board" class="crossword"></div></div></div><div class="hintbar"><span>Backspace: harfi siler; hücre boşsa önceki kutuya geçip siler. Ok tuşları yön değiştirir.</span><span class="installNote">Teşekkür için: efem1052@gmail.com</span></div></main><aside class="side"><div class="tabs"><button id="tabAcross" class="tab on">Yatay</button><button id="tabDown" class="tab">Dikey</button><button id="clearBtn" class="tab">Temizle</button></div><div id="clues" class="clues"></div></aside></section>
+</div><div id="toast" class="toast"></div><div id="hintBubble" class="hintBubble"></div>
+<script>
+const WORDS=[{"tr": "Çalışmak", "en": "Work"}, {"tr": "İş", "en": "Work"}, {"tr": "Meslek", "en": "Job"}, {"tr": "İş", "en": "Job"}, {"tr": "Şirket", "en": "Company"}, {"tr": "Ofis", "en": "Office"}, {"tr": "Büro", "en": "Office"}, {"tr": "Toplantı", "en": "Meeting"}, {"tr": "Patron", "en": "Boss"}, {"tr": "Çalışan", "en": "Employee"}, {"tr": "İşçi", "en": "Employee"}, {"tr": "İş", "en": "Business"}, {"tr": "Ticaret", "en": "Business"}, {"tr": "Proje", "en": "Project"}, {"tr": "Rapor", "en": "Report"}, {"tr": "Müdür", "en": "Manager"}, {"tr": "Maaş", "en": "Salary"}, {"tr": "Kariyer", "en": "Career"}, {"tr": "Takım", "en": "Team"}, {"tr": "Ekip", "en": "Team"}, {"tr": "Müşteri", "en": "Customer"}, {"tr": "Ev", "en": "Home"}, {"tr": "Müstakil Ev", "en": "House"}, {"tr": "Oda", "en": "Room"}, {"tr": "Aile", "en": "Family"}, {"tr": "Arkadaş", "en": "Friend"}, {"tr": "Uyumak", "en": "Sleep"}, {"tr": "Yemek yemek", "en": "Eat"}, {"tr": "İçmek", "en": "Drink"}, {"tr": "Kapı", "en": "Door"}, {"tr": "Pencere", "en": "Window"}, {"tr": "Masa", "en": "Table"}, {"tr": "Sandalye", "en": "Chair"}, {"tr": "Yatak", "en": "Bed"}, {"tr": "Yemek", "en": "Food"}, {"tr": "Gıda", "en": "Food"}, {"tr": "Su", "en": "Water"}, {"tr": "Gitmek", "en": "Go"}, {"tr": "Gelmek", "en": "Come"}, {"tr": "Görmek", "en": "See"}, {"tr": "Bakmak", "en": "Look"}, {"tr": "Yapmak", "en": "Make"}, {"tr": "Yapmak", "en": "Do"}, {"tr": "Almak", "en": "Take"}, {"tr": "Götürmek", "en": "Take"}, {"tr": "Vermek", "en": "Give"}, {"tr": "Elde etmek", "en": "Get"}, {"tr": "Almak", "en": "Get"}, {"tr": "Düşünmek", "en": "Think"}, {"tr": "Söylemek", "en": "Say"}, {"tr": "Anlatmak", "en": "Tell"}, {"tr": "İstemek", "en": "Want"}, {"tr": "Bulmak", "en": "Find"}, {"tr": "Kullanmak", "en": "Use"}, {"tr": "Büyük", "en": "Big"}, {"tr": "Küçük", "en": "Small"}, {"tr": "İyi", "en": "Good"}, {"tr": "Kötü", "en": "Bad"}, {"tr": "Güzel", "en": "Beautiful"}, {"tr": "Çirkin", "en": "Ugly"}, {"tr": "Hızlı", "en": "Fast"}, {"tr": "Yavaş", "en": "Slow"}, {"tr": "Mutlu", "en": "Happy"}, {"tr": "Üzgün", "en": "Sad"}, {"tr": "Sıcak", "en": "Hot"}, {"tr": "Soğuk", "en": "Cold"}, {"tr": "Yeni", "en": "New"}, {"tr": "Eski", "en": "Old"}, {"tr": "Yaşlı", "en": "Old"}, {"tr": "Genç", "en": "Young"}, {"tr": "Kolay", "en": "Easy"}, {"tr": "Zor", "en": "Hard"}, {"tr": "Zengin", "en": "Rich"}, {"tr": "Fakir", "en": "Poor"}, {"tr": "Temiz", "en": "Clean"}, {"tr": "Kirli", "en": "Dirty"}, {"tr": "Dolu", "en": "Full"}, {"tr": "Boş", "en": "Empty"}, {"tr": "Güçlü", "en": "Strong"}, {"tr": "Zayıf", "en": "Weak"}, {"tr": "Zaman", "en": "Time"}, {"tr": "Vakit", "en": "Time"}, {"tr": "Gün", "en": "Day"}, {"tr": "Hafta", "en": "Week"}, {"tr": "Ay", "en": "Month"}, {"tr": "Yıl", "en": "Year"}, {"tr": "Sene", "en": "Year"}, {"tr": "Bugün", "en": "Today"}, {"tr": "Dün", "en": "Yesterday"}, {"tr": "Yarın", "en": "Tomorrow"}, {"tr": "Sabah", "en": "Morning"}, {"tr": "Öğleden sonra", "en": "Afternoon"}, {"tr": "Akşam", "en": "Evening"}, {"tr": "Gece", "en": "Night"}, {"tr": "Saat", "en": "Hour"}, {"tr": "Dakika", "en": "Minute"}, {"tr": "Saniye", "en": "Second"}, {"tr": "Hafta içi", "en": "Weekday"}, {"tr": "Hafta sonu", "en": "Weekend"}, {"tr": "Her zaman", "en": "Always"}, {"tr": "Asla", "en": "Never"}, {"tr": "Araba", "en": "Car"}, {"tr": "Otobüs", "en": "Bus"}, {"tr": "Tren", "en": "Train"}, {"tr": "Uçak", "en": "Plane"}, {"tr": "Bisiklet", "en": "Bicycle"}, {"tr": "Yol", "en": "Road"}, {"tr": "Cadde", "en": "Street"}, {"tr": "Sokak", "en": "Street"}, {"tr": "Bilet", "en": "Ticket"}, {"tr": "Havalimanı", "en": "Airport"}, {"tr": "İstasyon", "en": "Station"}, {"tr": "Otel", "en": "Hotel"}, {"tr": "Harita", "en": "Map"}, {"tr": "Sürücü", "en": "Driver"}, {"tr": "Şoför", "en": "Driver"}, {"tr": "Seyahat etmek", "en": "Travel"}, {"tr": "Yolculuk", "en": "Trip"}, {"tr": "Elma", "en": "Apple"}, {"tr": "Ekmek", "en": "Bread"}, {"tr": "Süt", "en": "Milk"}, {"tr": "Çay", "en": "Tea"}, {"tr": "Kahve", "en": "Coffee"}, {"tr": "Şeker", "en": "Sugar"}, {"tr": "Tuz", "en": "Salt"}, {"tr": "Et", "en": "Meat"}, {"tr": "Balık", "en": "Fish"}, {"tr": "Meyve", "en": "Fruit"}, {"tr": "Yumurta", "en": "Egg"}, {"tr": "Peynir", "en": "Cheese"}, {"tr": "Pirinç", "en": "Rice"}, {"tr": "Çorba", "en": "Soup"}, {"tr": "Güneş", "en": "Sun"}, {"tr": "Ay", "en": "Moon"}, {"tr": "Yıldız", "en": "Star"}, {"tr": "Gökyüzü", "en": "Sky"}, {"tr": "Bulut", "en": "Cloud"}, {"tr": "Yağmur", "en": "Rain"}, {"tr": "Kar", "en": "Snow"}, {"tr": "Rüzgar", "en": "Wind"}, {"tr": "Deniz", "en": "Sea"}, {"tr": "Nehir", "en": "River"}, {"tr": "Ağaç", "en": "Tree"}, {"tr": "Çiçek", "en": "Flower"}, {"tr": "Yaprak", "en": "Leaf"}, {"tr": "Çimen", "en": "Grass"}, {"tr": "Dağ", "en": "Mountain"}, {"tr": "Dünya", "en": "Earth"}, {"tr": "Toprak", "en": "Earth"}, {"tr": "Vücut", "en": "Body"}, {"tr": "Baş", "en": "Head"}, {"tr": "Kafa", "en": "Head"}, {"tr": "Göz", "en": "Eye"}, {"tr": "Kulak", "en": "Ear"}, {"tr": "Burun", "en": "Nose"}, {"tr": "Ağız", "en": "Mouth"}, {"tr": "Diş", "en": "Tooth"}, {"tr": "El", "en": "Hand"}, {"tr": "Ayak", "en": "Foot"}, {"tr": "Kol", "en": "Arm"}, {"tr": "Bacak", "en": "Leg"}, {"tr": "Kalp", "en": "Heart"}, {"tr": "Kan", "en": "Blood"}, {"tr": "Acı", "en": "Pain"}, {"tr": "Ağrı", "en": "Pain"}, {"tr": "Hasta", "en": "Sick"}, {"tr": "Doktor", "en": "Doctor"}, {"tr": "Hastane", "en": "Hospital"}, {"tr": "Para", "en": "Money"}, {"tr": "Nakit", "en": "Cash"}, {"tr": "Fiyat", "en": "Price"}, {"tr": "Maliyet", "en": "Cost"}, {"tr": "Satın almak", "en": "Buy"}, {"tr": "Satmak", "en": "Sell"}, {"tr": "Mağaza", "en": "Shop"}, {"tr": "Dükkan", "en": "Shop"}, {"tr": "Pazar", "en": "Market"}, {"tr": "Çanta", "en": "Bag"}, {"tr": "Ucuz", "en": "Cheap"}, {"tr": "Pahalı", "en": "Expensive"}, {"tr": "Ödemek", "en": "Pay"}, {"tr": "Fatura", "en": "Bill"}, {"tr": "Fiş", "en": "Receipt"}, {"tr": "Aramak", "en": "Call"}, {"tr": "Konuşmak", "en": "Talk"}, {"tr": "Dinlemek", "en": "Listen"}, {"tr": "Duymak", "en": "Hear"}, {"tr": "Yazmak", "en": "Write"}, {"tr": "Okumak", "en": "Read"}, {"tr": "Sevmek", "en": "Love"}, {"tr": "Nefret etmek", "en": "Hate"}, {"tr": "Beğenmek", "en": "Like"}, {"tr": "Korku", "en": "Fear"}, {"tr": "Kızgın", "en": "Angry"}, {"tr": "Gülümsemek", "en": "Smile"}, {"tr": "Gülmek", "en": "Laugh"}, {"tr": "Ağlamak", "en": "Cry"}, {"tr": "Sanat", "en": "Art"}, {"tr": "Müzik", "en": "Music"}, {"tr": "Şarkı", "en": "Song"}, {"tr": "Film", "en": "Movie"}, {"tr": "Oyun", "en": "Game"}, {"tr": "Dans etmek", "en": "Dance"}, {"tr": "Şarkı söylemek", "en": "Sing"}, {"tr": "Boyamak", "en": "Paint"}, {"tr": "Resim", "en": "Picture"}, {"tr": "Kamera", "en": "Camera"}, {"tr": "Oyuncu", "en": "Actor"}, {"tr": "Aktör", "en": "Actor"}, {"tr": "Sahne", "en": "Stage"}, {"tr": "Konser", "en": "Concert"}, {"tr": "Giysi", "en": "Clothes"}, {"tr": "Kıyafet", "en": "Clothes"}, {"tr": "Gömlek", "en": "Shirt"}, {"tr": "Pantolon", "en": "Pants"}, {"tr": "Elbise", "en": "Dress"}, {"tr": "Ayakkabı", "en": "Shoes"}, {"tr": "Şapka", "en": "Hat"}, {"tr": "Mont", "en": "Coat"}, {"tr": "Kaban", "en": "Coat"}, {"tr": "Çorap", "en": "Sock"}, {"tr": "Yüzük", "en": "Ring"}, {"tr": "Kol saati", "en": "Watch"}, {"tr": "Giymek", "en": "Wear"}, {"tr": "Şehir", "en": "City"}, {"tr": "Kasaba", "en": "Town"}, {"tr": "Köy", "en": "Village"}, {"tr": "Bina", "en": "Building"}, {"tr": "Banka", "en": "Bank"}, {"tr": "Park", "en": "Park"}, {"tr": "Köprü", "en": "Bridge"}, {"tr": "Mağaza", "en": "Store"}, {"tr": "Kilise", "en": "Church"}, {"tr": "Cami", "en": "Mosque"}, {"tr": "Okul", "en": "School"}, {"tr": "İnsanlar", "en": "People"}, {"tr": "Adam", "en": "Man"}, {"tr": "Kadın", "en": "Woman"}, {"tr": "Çocuk", "en": "Child"}, {"tr": "Bebek", "en": "Baby"}, {"tr": "Kişi", "en": "Person"}, {"tr": "İsim", "en": "Name"}, {"tr": "Ad", "en": "Name"}, {"tr": "Komşu", "en": "Neighbor"}, {"tr": "Vatandaş", "en": "Citizen"}, {"tr": "Kral", "en": "King"}, {"tr": "Kraliçe", "en": "Queen"}, {"tr": "Lider", "en": "Leader"}, {"tr": "Bilgisayar", "en": "Computer"}, {"tr": "Telefon", "en": "Phone"}, {"tr": "Ekran", "en": "Screen"}, {"tr": "İnternet", "en": "Internet"}, {"tr": "Web sitesi", "en": "Website"}, {"tr": "E-posta", "en": "Email"}, {"tr": "Mesaj", "en": "Message"}, {"tr": "Veri", "en": "Data"}, {"tr": "Ağ", "en": "Network"}, {"tr": "Sistem", "en": "System"}, {"tr": "Yazılım", "en": "Software"}, {"tr": "Video", "en": "Video"}, {"tr": "Ses", "en": "Audio"}, {"tr": "Haber", "en": "News"}, {"tr": "Köpek", "en": "Dog"}, {"tr": "Kedi", "en": "Cat"}, {"tr": "Kuş", "en": "Bird"}, {"tr": "At", "en": "Horse"}, {"tr": "İnek", "en": "Cow"}, {"tr": "Koyun", "en": "Sheep"}, {"tr": "Aslan", "en": "Lion"}, {"tr": "Kaplan", "en": "Tiger"}, {"tr": "Ayı", "en": "Bear"}, {"tr": "Maymun", "en": "Monkey"}, {"tr": "Fare", "en": "Mouse"}, {"tr": "Fil", "en": "Elephant"}, {"tr": "Boyut", "en": "Size"}, {"tr": "Ağırlık", "en": "Weight"}, {"tr": "Uzunluk", "en": "Length"}, {"tr": "Mesafe", "en": "Distance"}, {"tr": "Alan", "en": "Area"}, {"tr": "Çizgi", "en": "Line"}, {"tr": "Daire", "en": "Circle"}, {"tr": "Kare", "en": "Square"}, {"tr": "Nokta", "en": "Point"}, {"tr": "Ağır", "en": "Heavy"}, {"tr": "Hafif", "en": "Light"}, {"tr": "Yüksek", "en": "High"}, {"tr": "Alçak", "en": "Low"}, {"tr": "Kanun", "en": "Law"}, {"tr": "Kural", "en": "Rule"}, {"tr": "Polis", "en": "Police"}, {"tr": "Mahkeme", "en": "Court"}, {"tr": "Hakim", "en": "Judge"}, {"tr": "Suç", "en": "Crime"}, {"tr": "Güvenli", "en": "Safe"}, {"tr": "Tehlike", "en": "Danger"}, {"tr": "Hapishane", "en": "Prison"}, {"tr": "Gerçek", "en": "Truth"}, {"tr": "Yalan", "en": "Lie"}, {"tr": "Hak", "en": "Right"}, {"tr": "Tabak", "en": "Plate"}, {"tr": "Çatal", "en": "Fork"}, {"tr": "Kaşık", "en": "Spoon"}, {"tr": "Bıçak", "en": "Knife"}, {"tr": "Bardak", "en": "Glass"}, {"tr": "Fincan", "en": "Cup"}, {"tr": "Kase", "en": "Bowl"}, {"tr": "Duvar saati", "en": "Clock"}, {"tr": "Ayna", "en": "Mirror"}, {"tr": "Halı", "en": "Carpet"}, {"tr": "Anahtar", "en": "Key"}, {"tr": "Kilit", "en": "Lock"}, {"tr": "Lamba", "en": "Lamp"}, {"tr": "Sabun", "en": "Soap"}, {"tr": "Havlu", "en": "Towel"}, {"tr": "Kemer", "en": "Belt"}, {"tr": "Eldiven", "en": "Glove"}, {"tr": "Gözlük", "en": "Glasses"}, {"tr": "Cep", "en": "Pocket"}, {"tr": "Düğme", "en": "Button"}, {"tr": "Şemsiye", "en": "Umbrella"}, {"tr": "Cüzdan", "en": "Wallet"}, {"tr": "Zincir", "en": "Chain"}, {"tr": "Taç", "en": "Crown"}, {"tr": "Mücevher", "en": "Jewel"}, {"tr": "İpek", "en": "Silk"}, {"tr": "Pamuk", "en": "Cotton"}, {"tr": "Altın", "en": "Gold"}, {"tr": "Gümüş", "en": "Silver"}, {"tr": "Nazik", "en": "Kind"}, {"tr": "Kibar", "en": "Kind"}, {"tr": "Kibar", "en": "Polite"}, {"tr": "Kaba", "en": "Rude"}, {"tr": "Akıllı", "en": "Smart"}, {"tr": "Zeki", "en": "Clever"}, {"tr": "Aptal", "en": "Stupid"}, {"tr": "Tembel", "en": "Lazy"}, {"tr": "Cesur", "en": "Brave"}, {"tr": "Dürüst", "en": "Honest"}, {"tr": "Sakin", "en": "Calm"}, {"tr": "Sessiz", "en": "Quiet"}, {"tr": "Komik", "en": "Funny"}, {"tr": "Ciddi", "en": "Serious"}, {"tr": "Utangaç", "en": "Shy"}, {"tr": "Gururlu", "en": "Proud"}, {"tr": "Fikir", "en": "Idea"}, {"tr": "Akıl", "en": "Mind"}, {"tr": "Zihin", "en": "Mind"}, {"tr": "Hafıza", "en": "Memory"}, {"tr": "Rüya", "en": "Dream"}, {"tr": "Hayal", "en": "Dream"}, {"tr": "Umut", "en": "Hope"}, {"tr": "Sır", "en": "Secret"}, {"tr": "Şans", "en": "Luck"}, {"tr": "Ruh", "en": "Soul"}, {"tr": "Güç", "en": "Power"}, {"tr": "Barış", "en": "Peace"}, {"tr": "Savaş", "en": "War"}, {"tr": "Hayat", "en": "Life"}, {"tr": "Ölüm", "en": "Death"}, {"tr": "Dünya", "en": "World"}, {"tr": "Ülke", "en": "Country"}, {"tr": "Eyalet", "en": "State"}, {"tr": "Devlet", "en": "State"}, {"tr": "Bölge", "en": "Region"}, {"tr": "Sınır", "en": "Border"}, {"tr": "Ada", "en": "Island"}, {"tr": "Çöl", "en": "Desert"}, {"tr": "Orman", "en": "Forest"}, {"tr": "Göl", "en": "Lake"}, {"tr": "Okyanus", "en": "Ocean"}, {"tr": "Sahil", "en": "Coast"}, {"tr": "Kıyı", "en": "Coast"}, {"tr": "Vadi", "en": "Valley"}, {"tr": "Kuzey", "en": "North"}, {"tr": "Güney", "en": "South"}, {"tr": "Doğu", "en": "East"}, {"tr": "Batı", "en": "West"}, {"tr": "Odun", "en": "Wood"}, {"tr": "Tahta", "en": "Wood"}, {"tr": "Metal", "en": "Metal"}, {"tr": "Demir", "en": "Iron"}, {"tr": "Taş", "en": "Stone"}, {"tr": "Kaya", "en": "Rock"}, {"tr": "Cam", "en": "Glass"}, {"tr": "Plastik", "en": "Plastic"}, {"tr": "Kağıt", "en": "Paper"}, {"tr": "Deri", "en": "Leather"}, {"tr": "Yağ", "en": "Oil"}, {"tr": "Petrol", "en": "Oil"}, {"tr": "Gaz", "en": "Gas"}, {"tr": "Buz", "en": "Ice"}, {"tr": "Toz", "en": "Dust"}, {"tr": "Kum", "en": "Sand"}, {"tr": "Renk", "en": "Color"}, {"tr": "Siyah", "en": "Black"}, {"tr": "Beyaz", "en": "White"}, {"tr": "Kırmızı", "en": "Red"}, {"tr": "Mavi", "en": "Blue"}, {"tr": "Yeşil", "en": "Green"}, {"tr": "Sarı", "en": "Yellow"}, {"tr": "Kahverengi", "en": "Brown"}, {"tr": "Gri", "en": "Gray"}, {"tr": "Pembe", "en": "Pink"}, {"tr": "Mor", "en": "Purple"}, {"tr": "Turuncu", "en": "Orange"}, {"tr": "Koyu", "en": "Dark"}, {"tr": "Açık", "en": "Light"}, {"tr": "Parlak", "en": "Bright"}, {"tr": "Durmak", "en": "Stop"}, {"tr": "Başlamak", "en": "Start"}, {"tr": "Başlamak", "en": "Begin"}, {"tr": "Beklemek", "en": "Wait"}, {"tr": "Yardım etmek", "en": "Help"}, {"tr": "Denemek", "en": "Try"}, {"tr": "Sormak", "en": "Ask"}, {"tr": "İstemek", "en": "Ask"}, {"tr": "İhtiyaç duymak", "en": "Need"}, {"tr": "Tutmak", "en": "Keep"}, {"tr": "Saklamak", "en": "Keep"}, {"tr": "Tutmak", "en": "Hold"}, {"tr": "Getirmek", "en": "Bring"}, {"tr": "Ayrılmak", "en": "Leave"}, {"tr": "Bırakmak", "en": "Leave"}, {"tr": "Hükümet", "en": "Government"}, {"tr": "Başkan", "en": "President"}, {"tr": "Bakan", "en": "Minister"}, {"tr": "Oy vermek", "en": "Vote"}, {"tr": "Seçim", "en": "Election"}, {"tr": "Parti", "en": "Party"}, {"tr": "Millet", "en": "Nation"}, {"tr": "Özgürlük", "en": "Freedom"}, {"tr": "Vergi", "en": "Tax"}, {"tr": "Ordu", "en": "Army"}, {"tr": "Asker", "en": "Soldier"}, {"tr": "Spor", "en": "Sport"}, {"tr": "Top", "en": "Ball"}, {"tr": "Maç", "en": "Match"}, {"tr": "Oyuncu", "en": "Player"}, {"tr": "Antrenör", "en": "Coach"}, {"tr": "Kazanmak", "en": "Win"}, {"tr": "Kaybetmek", "en": "Lose"}, {"tr": "Skor", "en": "Score"}, {"tr": "Koşmak", "en": "Run"}, {"tr": "Zıplamak", "en": "Jump"}, {"tr": "Yüzmek", "en": "Swim"}, {"tr": "Sağlık", "en": "Health"}, {"tr": "Hastalık", "en": "Illness"}, {"tr": "Hastalık", "en": "Disease"}, {"tr": "Ateş", "en": "Fever"}, {"tr": "Öksürük", "en": "Cough"}, {"tr": "İlaç", "en": "Medicine"}, {"tr": "Hap", "en": "Pill"}, {"tr": "Hemşire", "en": "Nurse"}, {"tr": "Yara", "en": "Wound"}, {"tr": "Tedavi", "en": "Cure"}, {"tr": "Ameliyat", "en": "Operation"}, {"tr": "Ve", "en": "And"}, {"tr": "Ama", "en": "But"}, {"tr": "Veya", "en": "Or"}, {"tr": "Çünkü", "en": "Because"}, {"tr": "Eğer", "en": "If"}, {"tr": "İle", "en": "With"}, {"tr": "Olmadan", "en": "Without"}, {"tr": "Hakkında", "en": "About"}, {"tr": "İçin", "en": "For"}, {"tr": "E doğru", "en": "To"}, {"tr": "Den", "en": "From"}, {"tr": "Dan", "en": "Dan"}, {"tr": "Duvar", "en": "Wall"}, {"tr": "Yer", "en": "Floor"}, {"tr": "Zemin", "en": "Floor"}, {"tr": "Çatı", "en": "Roof"}, {"tr": "Tavan", "en": "Ceiling"}, {"tr": "Bahçe kapısı", "en": "Gate"}, {"tr": "Kapı", "en": "Gate"}, {"tr": "Kule", "en": "Tower"}, {"tr": "Sütun", "en": "Pillar"}, {"tr": "Tuğla", "en": "Brick"}, {"tr": "Çit", "en": "Fence"}, {"tr": "Erken", "en": "Early"}, {"tr": "Geç", "en": "Late"}, {"tr": "Yakında", "en": "Soon"}, {"tr": "Zaten", "en": "Already"}, {"tr": "Henüz", "en": "Yet"}, {"tr": "Hala", "en": "Still"}, {"tr": "Den beri", "en": "Since"}, {"tr": "Kadar", "en": "Until"}, {"tr": "İken", "en": "While"}, {"tr": "Sık sık", "en": "Often"}, {"tr": "Seyrek", "en": "Seldom"}, {"tr": "Nadiren", "en": "Rarely"}, {"tr": "Genellikle", "en": "Usually"}, {"tr": "Bazen", "en": "Sometimes"}, {"tr": "Ticaret", "en": "Trade"}, {"tr": "Piyasa", "en": "Market"}, {"tr": "Stok", "en": "Stock"}, {"tr": "Hisse", "en": "Stock"}, {"tr": "Servet", "en": "Wealth"}, {"tr": "Borç", "en": "Debt"}, {"tr": "Gelir", "en": "Income"}, {"tr": "Kar", "en": "Profit"}, {"tr": "Zarar", "en": "Loss"}, {"tr": "Kredi", "en": "Credit"}, {"tr": "Değer", "en": "Value"}, {"tr": "Kasa", "en": "Safe"}, {"tr": "Yürümek", "en": "Walk"}, {"tr": "Atlamak", "en": "Jump"}, {"tr": "Düşmek", "en": "Fall"}, {"tr": "Oturmak", "en": "Sit"}, {"tr": "Ayakta durmak", "en": "Stand"}, {"tr": "Durmak", "en": "Stand"}, {"tr": "Taşımak", "en": "Carry"}, {"tr": "İtmek", "en": "Push"}, {"tr": "Çekmek", "en": "Pull"}, {"tr": "Kırmak", "en": "Break"}, {"tr": "Kesmek", "en": "Cut"}, {"tr": "İnşa etmek", "en": "Build"}, {"tr": "Plaj", "en": "Beach"}, {"tr": "Dalga", "en": "Wave"}, {"tr": "Bilmek", "en": "Know"}, {"tr": "Öğrenmek", "en": "Learn"}, {"tr": "Unutmak", "en": "Forget"}, {"tr": "Hatırlamak", "en": "Remember"}, {"tr": "Anlamak", "en": "Understand"}, {"tr": "İnanmak", "en": "Believe"}, {"tr": "Umut etmek", "en": "Hope"}, {"tr": "Dilemek", "en": "Wish"}, {"tr": "Anlamına gelmek", "en": "Mean"}, {"tr": "Görünmek", "en": "Seem"}, {"tr": "Hissetmek", "en": "Feel"}, {"tr": "Yemek pişirmek", "en": "Cook"}, {"tr": "Fırında pişirmek", "en": "Bake"}, {"tr": "Kaynatmak", "en": "Boil"}, {"tr": "Kızartmak", "en": "Fry"}, {"tr": "Tava", "en": "Pan"}, {"tr": "Tencere", "en": "Pot"}, {"tr": "Fırın", "en": "Oven"}, {"tr": "Ocak", "en": "Stove"}, {"tr": "Buzdolabı", "en": "Fridge"}, {"tr": "Lavabo", "en": "Sink"}, {"tr": "Menü", "en": "Menu"}, {"tr": "Sipariş", "en": "Order"}, {"tr": "Sipariş vermek", "en": "Order"}, {"tr": "Sanatçı", "en": "Artist"}, {"tr": "Yazar", "en": "Writer"}, {"tr": "Şair", "en": "Poet"}, {"tr": "Şiir", "en": "Poem"}, {"tr": "Hikaye", "en": "Story"}, {"tr": "Öykü", "en": "Story"}, {"tr": "Roman", "en": "Novel"}, {"tr": "Tiyatro", "en": "Drama"}, {"tr": "Müze", "en": "Museum"}, {"tr": "Galeri", "en": "Gallery"}, {"tr": "Tarz", "en": "Style"}, {"tr": "Stil", "en": "Style"}, {"tr": "Ünlü", "en": "Famous"}, {"tr": "Kutu", "en": "Box"}, {"tr": "Şişe", "en": "Bottle"}, {"tr": "Teneke kutu", "en": "Can"}, {"tr": "İp", "en": "Rope"}, {"tr": "Halat", "en": "Rope"}, {"tr": "Araç", "en": "Tool"}, {"tr": "Alet", "en": "Tool"}, {"tr": "Makine", "en": "Machine"}, {"tr": "Tel", "en": "Wire"}, {"tr": "İplik", "en": "Thread"}, {"tr": "Boru", "en": "Pipe"}, {"tr": "Tekerlek", "en": "Wheel"}, {"tr": "Konuşmak", "en": "Speak"}, {"tr": "Ses", "en": "Voice"}, {"tr": "Ses", "en": "Sound"}, {"tr": "Kelime", "en": "Word"}, {"tr": "Sözcük", "en": "Word"}, {"tr": "Cümle", "en": "Sentence"}, {"tr": "Dil", "en": "Language"}, {"tr": "Şaka", "en": "Joke"}, {"tr": "Söz", "en": "Promise"}, {"tr": "Söz vermek", "en": "Promise"}, {"tr": "Tavsiye", "en": "Advice"}, {"tr": "Öğüt", "en": "Advice"}, {"tr": "İşçi", "en": "Worker"}, {"tr": "Öğretmen", "en": "Teacher"}, {"tr": "Öğrenci", "en": "Student"}, {"tr": "İçecek", "en": "Drink"}, {"tr": "Hesap", "en": "Bill"}, {"tr": "Bahşiş", "en": "Tip"}, {"tr": "Hepsi", "en": "All"}, {"tr": "Hiçbiri", "en": "None"}, {"tr": "Bazı", "en": "Some"}, {"tr": "Çok", "en": "Many"}, {"tr": "Çok", "en": "Much"}, {"tr": "Az", "en": "Little"}, {"tr": "Az", "en": "Few"}, {"tr": "Daha fazla", "en": "More"}, {"tr": "Daha az", "en": "Less"}, {"tr": "Yarım", "en": "Half"}, {"tr": "Ders", "en": "Lesson"}, {"tr": "Sınav", "en": "Exam"}, {"tr": "Test", "en": "Test"}, {"tr": "Not", "en": "Grade"}, {"tr": "Derece", "en": "Grade"}, {"tr": "Derece", "en": "Degree"}, {"tr": "Diploma", "en": "Degree"}, {"tr": "Ödev", "en": "Homework"}, {"tr": "Tahta", "en": "Board"}, {"tr": "Tebeşir", "en": "Chalk"}, {"tr": "Sıra", "en": "Desk"}, {"tr": "Kütüphane", "en": "Library"}, {"tr": "Kurs", "en": "Course"}, {"tr": "Satış", "en": "Sale"}, {"tr": "İndirim", "en": "Sale"}, {"tr": "Bedava", "en": "Free"}, {"tr": "Ücretsiz", "en": "Free"}, {"tr": "Madeni para", "en": "Coin"}, {"tr": "Hediye", "en": "Gift"}, {"tr": "Kart", "en": "Card"}, {"tr": "Yorgun", "en": "Tired"}, {"tr": "İyi", "en": "Well"}, {"tr": "Korkmuş", "en": "Afraid"}, {"tr": "Meşgul", "en": "Busy"}, {"tr": "Gürültülü", "en": "Loud"}, {"tr": "Radyo", "en": "Radio"}, {"tr": "Saat", "en": "Clock"}, {"tr": "Pil", "en": "Battery"}, {"tr": "Işık", "en": "Light"}, {"tr": "Enerji", "en": "Energy"}, {"tr": "Yukarı", "en": "Up"}, {"tr": "Aşağı", "en": "Down"}, {"tr": "Sol", "en": "Left"}, {"tr": "Sağ", "en": "Right"}, {"tr": "Ön", "en": "Front"}, {"tr": "Arka", "en": "Back"}, {"tr": "Merkez", "en": "Center"}, {"tr": "Orta", "en": "Center"}, {"tr": "Üst", "en": "Top"}, {"tr": "Alt", "en": "Bottom"}, {"tr": "Yan", "en": "Side"}, {"tr": "İçeri", "en": "Inside"}, {"tr": "Dışarı", "en": "Outside"}, {"tr": "Yakın", "en": "Near"}, {"tr": "Uzak", "en": "Far"}, {"tr": "Açmak", "en": "Open"}, {"tr": "Kapatmak", "en": "Close"}, {"tr": "Tamir etmek", "en": "Fix"}, {"tr": "Temizlemek", "en": "Clean"}, {"tr": "Yıkamak", "en": "Wash"}, {"tr": "Fırçalamak", "en": "Brush"}, {"tr": "Bağlamak", "en": "Tie"}, {"tr": "Kaplamak", "en": "Cover"}, {"tr": "Örtmek", "en": "Cover"}, {"tr": "Şekil", "en": "Shape"}, {"tr": "Form", "en": "Form"}, {"tr": "Biçim", "en": "Form"}, {"tr": "Kenar", "en": "Edge"}, {"tr": "Köşe", "en": "Corner"}, {"tr": "Delik", "en": "Hole"}, {"tr": "Düz", "en": "Flat"}, {"tr": "Yuvarlak", "en": "Round"}, {"tr": "True", "en": "Truth"}, {"tr": "True", "en": "Right"}, {"tr": "False", "en": "Wrong"}, {"tr": "Hata", "en": "Fault"}, {"tr": "Kusur", "en": "Fault"}, {"tr": "Personel", "en": "Staff"}, {"tr": "Ortak", "en": "Partner"}, {"tr": "Görev", "en": "Duty"}, {"tr": "İş", "en": "Task"}, {"tr": "Görev", "en": "Task"}, {"tr": "Hedef", "en": "Target"}, {"tr": "Amaç", "en": "Goal"}, {"tr": "Gaye", "en": "Goal"}, {"tr": "Beceri", "en": "Skill"}, {"tr": "Yetenek", "en": "Skill"}, {"tr": "Marka", "en": "Brand"}, {"tr": "Kazanç", "en": "Profit"}, {"tr": "Meydan", "en": "Square"}, {"tr": "Tünel", "en": "Tunnel"}, {"tr": "İşaret", "en": "Sign"}, {"tr": "Tabela", "en": "Sign"}, {"tr": "Sinyal", "en": "Signal"}, {"tr": "Şerit", "en": "Lane"}, {"tr": "Trafik", "en": "Traffic"}, {"tr": "Park etmek", "en": "Park"}, {"tr": "Durak", "en": "Stop"}, {"tr": "Solgun", "en": "Pale"}, {"tr": "Derin", "en": "Deep"}, {"tr": "Koyu", "en": "Deep"}, {"tr": "Şeffaf", "en": "Clear"}, {"tr": "Berrak", "en": "Clear"}, {"tr": "Mat", "en": "Matte"}, {"tr": "Işıltılı", "en": "Shiny"}, {"tr": "Parlak", "en": "Shiny"}, {"tr": "Günlük", "en": "Daily"}, {"tr": "Haftalık", "en": "Weekly"}, {"tr": "Aylık", "en": "Monthly"}, {"tr": "Yıllık", "en": "Yearly"}, {"tr": "Geniş", "en": "Wide"}, {"tr": "Dar", "en": "Narrow"}, {"tr": "Sığ", "en": "Shallow"}, {"tr": "Kalın", "en": "Thick"}, {"tr": "İnce", "en": "Thin"}, {"tr": "Uzun", "en": "Long"}, {"tr": "Kısa", "en": "Short"}, {"tr": "Garson", "en": "Server"}, {"tr": "Peçete", "en": "Napkin"}, {"tr": "Uçuş", "en": "Flight"}, {"tr": "Koltuk", "en": "Seat"}, {"tr": "Pilot", "en": "Pilot"}, {"tr": "Pasaport", "en": "Passport"}, {"tr": "Vize", "en": "Visa"}, {"tr": "Bagaj", "en": "Luggage"}, {"tr": "Bagaj", "en": "Baggage"}, {"tr": "Gecikme", "en": "Delay"}, {"tr": "Varmak", "en": "Arrive"}, {"tr": "Ayrılmak", "en": "Depart"}, {"tr": "Dosya", "en": "File"}, {"tr": "Klasör", "en": "Folder"}, {"tr": "Klavye", "en": "Keyboard"}, {"tr": "Şifre", "en": "Password"}, {"tr": "Hesap", "en": "Account"}, {"tr": "Bağlantı", "en": "Link"}, {"tr": "Aramak", "en": "Search"}, {"tr": "Silmek", "en": "Delete"}, {"tr": "Kaydetmek", "en": "Save"}, {"tr": "Kemik", "en": "Bone"}, {"tr": "Kas", "en": "Muscle"}, {"tr": "Deri", "en": "Skin"}, {"tr": "Cilt", "en": "Skin"}, {"tr": "Beyin", "en": "Brain"}, {"tr": "Sinir", "en": "Nerve"}, {"tr": "Hücre", "en": "Cell"}, {"tr": "Damla", "en": "Drop"}, {"tr": "Yaralanma", "en": "Injury"}, {"tr": "Avukat", "en": "Lawyer"}, {"tr": "Dava", "en": "Case"}, {"tr": "Duruşma", "en": "Trial"}, {"tr": "Jüri", "en": "Jury"}, {"tr": "Suçlu", "en": "Guilty"}, {"tr": "Kanıt", "en": "Proof"}, {"tr": "Delil", "en": "Evidence"}, {"tr": "Para cezası", "en": "Fine"}, {"tr": "Sel", "en": "Flood"}, {"tr": "Fırtına", "en": "Storm"}, {"tr": "Sis", "en": "Fog"}, {"tr": "Kıyı", "en": "Shore"}, {"tr": "Mağara", "en": "Cave"}, {"tr": "Misafir", "en": "Guest"}, {"tr": "Ev sahibi", "en": "Host"}, {"tr": "Üye", "en": "Member"}, {"tr": "Kalabalık", "en": "Crowd"}, {"tr": "Halk", "en": "Public"}, {"tr": "Toplum", "en": "Society"}, {"tr": "Kültür", "en": "Culture"}, {"tr": "Gençlik", "en": "Youth"}, {"tr": "Yetişkin", "en": "Adult"}, {"tr": "Yaşlı", "en": "Elder"}, {"tr": "Alışveriş merkezi", "en": "Mall"}, {"tr": "Tezgah", "en": "Counter"}, {"tr": "Raf", "en": "Shelf"}, {"tr": "El arabası", "en": "Cart"}, {"tr": "Sepet", "en": "Basket"}, {"tr": "İndirim", "en": "Discount"}, {"tr": "Para iadesi", "en": "Refund"}, {"tr": "Değişim", "en": "Exchange"}, {"tr": "Beden", "en": "Size"}, {"tr": "Taslak", "en": "Sketch"}, {"tr": "Çizim", "en": "Sketch"}, {"tr": "Desen", "en": "Pattern"}, {"tr": "Örüntü", "en": "Pattern"}, {"tr": "Çerçeve", "en": "Frame"}, {"tr": "Fırça", "en": "Brush"}, {"tr": "Tuval", "en": "Canvas"}, {"tr": "Heykel", "en": "Sculpture"}, {"tr": "Gölge", "en": "Shadow"}, {"tr": "Doku", "en": "Texture"}, {"tr": "Ara sokak", "en": "Alley"}, {"tr": "Fabrika", "en": "Factory"}, {"tr": "Fırın", "en": "Bakery"}, {"tr": "Eczane", "en": "Pharmacy"}, {"tr": "Spor salonu", "en": "Gym"}, {"tr": "Sinema", "en": "Cinema"}, {"tr": "Tiyatro", "en": "Theater"}, {"tr": "Güvenlik", "en": "Safety"}, {"tr": "Hata", "en": "Error"}, {"tr": "Alışkanlık", "en": "Habit"}, {"tr": "Gelenek", "en": "Custom"}, {"tr": "Çiftlik", "en": "Farm"}, {"tr": "Çiftçi", "en": "Farmer"}, {"tr": "Tarla", "en": "Field"}, {"tr": "Alan", "en": "Field"}, {"tr": "Mahsul", "en": "Crop"}, {"tr": "Ekin", "en": "Crop"}, {"tr": "Hasat", "en": "Harvest"}, {"tr": "Tohum", "en": "Seed"}, {"tr": "Toprak", "en": "Soil"}, {"tr": "Tahıl", "en": "Grain"}, {"tr": "Buğday", "en": "Wheat"}, {"tr": "Eğri", "en": "Curve"}, {"tr": "Çelik", "en": "Steel"}, {"tr": "Yönetmen", "en": "Director"}, {"tr": "Müdür", "en": "Director"}, {"tr": "Temsilci", "en": "Agent"}, {"tr": "Ajan", "en": "Agent"}, {"tr": "Asistan", "en": "Assistant"}, {"tr": "Yardımcı", "en": "Assistant"}, {"tr": "Uzman", "en": "Expert"}, {"tr": "Uzman", "en": "Specialist"}, {"tr": "Şef", "en": "Chief"}, {"tr": "Başkan", "en": "Chief"}, {"tr": "Memur", "en": "Officer"}, {"tr": "Muhafız", "en": "Guard"}, {"tr": "Güvenlik", "en": "Guard"}, {"tr": "Zirve", "en": "Top"}, {"tr": "Dip", "en": "Bottom"}, {"tr": "Arasında", "en": "Between"}, {"tr": "Etrafında", "en": "Around"}, {"tr": "Çılgın", "en": "Crazy"}, {"tr": "Aptalca", "en": "Silly"}, {"tr": "Mütevazı", "en": "Modest"}, {"tr": "Zalim", "en": "Cruel"}, {"tr": "Seçmek", "en": "Choose"}, {"tr": "Karar vermek", "en": "Decide"}, {"tr": "Battaniye", "en": "Blanket"}, {"tr": "Yastık", "en": "Pillow"}, {"tr": "Çarşaf", "en": "Sheet"}, {"tr": "Perde", "en": "Curtain"}, {"tr": "Kilim", "en": "Rug"}, {"tr": "Çekmece", "en": "Drawer"}, {"tr": "Askı", "en": "Hanger"}, {"tr": "Vazo", "en": "Vase"}, {"tr": "Merdiven", "en": "Stairs"}, {"tr": "Basamak", "en": "Step"}, {"tr": "Adım", "en": "Step"}, {"tr": "Hol", "en": "Hall"}, {"tr": "Koridor", "en": "Hall"}, {"tr": "Balkon", "en": "Balcony"}, {"tr": "Kiriş", "en": "Beam"}, {"tr": "Fayans", "en": "Tile"}, {"tr": "Kiremit", "en": "Tile"}, {"tr": "Büyük kapı", "en": "Gate"}, {"tr": "Kemer", "en": "Arch"}, {"tr": "Yazar", "en": "Author"}, {"tr": "Sayfa", "en": "Page"}, {"tr": "Bölüm", "en": "Chapter"}, {"tr": "Başlık", "en": "Title"}, {"tr": "Kapak", "en": "Cover"}, {"tr": "Basmak", "en": "Print"}, {"tr": "Yayınlamak", "en": "Publish"}, {"tr": "Makale", "en": "Article"}, {"tr": "Eşit", "en": "Equal"}, {"tr": "Çift", "en": "Double"}, {"tr": "Tek", "en": "Single"}, {"tr": "Toplam", "en": "Total"}, {"tr": "Bütün", "en": "Whole"}, {"tr": "Kesin", "en": "Exact"}, {"tr": "Ortalama", "en": "Average"}, {"tr": "Bilim", "en": "Science"}, {"tr": "Gerçek", "en": "Fact"}, {"tr": "Teori", "en": "Theory"}, {"tr": "Sonuç", "en": "Result"}, {"tr": "Yöntem", "en": "Method"}, {"tr": "Örnek", "en": "Sample"}, {"tr": "Element", "en": "Element"}, {"tr": "Atom", "en": "Atom"}, {"tr": "Sıvı", "en": "Liquid"}, {"tr": "Katı", "en": "Solid"}, {"tr": "Korkmuş", "en": "Scared"}, {"tr": "Sıkılmış", "en": "Bored"}, {"tr": "Yalnız", "en": "Lonely"}, {"tr": "İncinmiş", "en": "Hurt"}, {"tr": "Şaşırmış", "en": "Shocked"}, {"tr": "Cevaplamak", "en": "Answer"}, {"tr": "İmzalamak", "en": "Sign"}, {"tr": "Kargo", "en": "Cargo"}, {"tr": "Yük", "en": "Load"}, {"tr": "Yük", "en": "Freight"}, {"tr": "Gemre ile yollamak", "en": "Ship"}, {"tr": "Teslimat", "en": "Delivery"}, {"tr": "Tedarik", "en": "Supply"}, {"tr": "Depolamak", "en": "Store"}, {"tr": "Paketlemek", "en": "Pack"}, {"tr": "Kutulamak", "en": "Box"}, {"tr": "Etiketlemek", "en": "Label"}, {"tr": "Güzergah", "en": "Route"}, {"tr": "Kod", "en": "Code"}, {"tr": "Hata", "en": "Bug"}, {"tr": "Böcek", "en": "Bug"}, {"tr": "Kurulum", "en": "Setup"}, {"tr": "Çalıştırmak", "en": "Run"}, {"tr": "Test etmek", "en": "Test"}, {"tr": "Anlaşmak", "en": "Agree"}, {"tr": "Tartışmak", "en": "Argue"}, {"tr": "İddia etmek", "en": "Claim"}, {"tr": "Şüphe duymak", "en": "Doubt"}, {"tr": "Teklif etmek", "en": "Offer"}, {"tr": "Kabul etmek", "en": "Accept"}, {"tr": "Reddetmek", "en": "Refuse"}, {"tr": "Planlamak", "en": "Plan"}, {"tr": "Önermek", "en": "Suggest"}, {"tr": "Kanıtlamak", "en": "Prove"}, {"tr": "Husus", "en": "Point"}, {"tr": "Tatlı", "en": "Sweet"}, {"tr": "Ekşi", "en": "Sour"}, {"tr": "Acı", "en": "Bitter"}, {"tr": "Tuzlu", "en": "Salty"}, {"tr": "Baharatlı", "en": "Spicy"}, {"tr": "Acı", "en": "Hot"}, {"tr": "Taze", "en": "Fresh"}, {"tr": "Çiğ", "en": "Raw"}, {"tr": "Pişmiş", "en": "Cooked"}, {"tr": "Kuru", "en": "Dry"}, {"tr": "Yumuşak", "en": "Soft"}, {"tr": "Sert", "en": "Hard"}, {"tr": "Çalışma masası", "en": "Desk"}, {"tr": "Dolap", "en": "Cabinet"}, {"tr": "Yazıcı", "en": "Printer"}, {"tr": "Tarayıcı", "en": "Scanner"}, {"tr": "Ataş", "en": "Clip"}, {"tr": "Damga", "en": "Stamp"}, {"tr": "Mühür", "en": "Stamp"}, {"tr": "Takvim", "en": "Calendar"}, {"tr": "Mat", "en": "Dull"}, {"tr": "Donuk", "en": "Dull"}, {"tr": "Canlı", "en": "Vivid"}, {"tr": "Fosforlu", "en": "Neon"}, {"tr": "Sallamak", "en": "Shake"}, {"tr": "Titremek", "en": "Shake"}, {"tr": "Sallamak", "en": "Wave"}, {"tr": "El sallamak", "en": "Wave"}, {"tr": "İşaret etmek", "en": "Point"}, {"tr": "Göstermek", "en": "Point"}, {"tr": "Dokunmak", "en": "Touch"}, {"tr": "Bastırmak", "en": "Press"}, {"tr": "Basmak", "en": "Press"}, {"tr": "Kapmak", "en": "Grab"}, {"tr": "Yakalamak", "en": "Grab"}, {"tr": "Yoğun", "en": "Thick"}, {"tr": "Geniş", "en": "Broad"}, {"tr": "Klinik", "en": "Clinic"}, {"tr": "Koğuş", "en": "Ward"}, {"tr": "Servis", "en": "Ward"}, {"tr": "Ameliyat", "en": "Surgery"}, {"tr": "Cerrahi", "en": "Surgery"}, {"tr": "Tarama", "en": "Scan"}, {"tr": "Röntgen", "en": "X-ray"}, {"tr": "Serum", "en": "Serum"}, {"tr": "İğne", "en": "Needle"}, {"tr": "Sargı", "en": "Bandage"}, {"tr": "Bandaj", "en": "Bandage"}, {"tr": "Kil", "en": "Clay"}, {"tr": "Yün", "en": "Wool"}, {"tr": "Makas", "en": "Scissors"}, {"tr": "Yapıştırıcı", "en": "Glue"}, {"tr": "Bant", "en": "Tape"}, {"tr": "Balmumu", "en": "Wax"}, {"tr": "Ahşap", "en": "Wood"}, {"tr": "Değer", "en": "Worth"}, {"tr": "Kıymet", "en": "Worth"}, {"tr": "Erdem", "en": "Merit"}, {"tr": "Liyakat", "en": "Merit"}, {"tr": "Kuvvet", "en": "Force"}, {"tr": "Zor", "en": "Force"}, {"tr": "Yetenek", "en": "Talent"}, {"tr": "Deha", "en": "Genius"}, {"tr": "Dahi", "en": "Genius"}, {"tr": "İzlemek", "en": "Watch"}, {"tr": "Tatmak", "en": "Taste"}, {"tr": "Koklamak", "en": "Smell"}, {"tr": "Sezmek", "en": "Sense"}, {"tr": "Fark etmek", "en": "Notice"}, {"tr": "Görmezden gelmek", "en": "Ignore"}, {"tr": "Kök", "en": "Root"}, {"tr": "Gövde", "en": "Stem"}, {"tr": "Sap", "en": "Stem"}, {"tr": "Dal", "en": "Branch"}, {"tr": "Çiçek açmak", "en": "Bloom"}, {"tr": "Mısır", "en": "Corn"}, {"tr": "Çuval", "en": "Sack"}, {"tr": "Kavanoz", "en": "Jar"}, {"tr": "Saksı", "en": "Pot"}, {"tr": "Kova", "en": "Bucket"}, {"tr": "Tank", "en": "Tank"}, {"tr": "Depo", "en": "Tank"}, {"tr": "Başkent", "en": "Capital"}, {"tr": "Belediye başkanı", "en": "Mayor"}, {"tr": "Konsey", "en": "Council"}, {"tr": "Meclis", "en": "Council"}, {"tr": "Koruma", "en": "Guard"}, {"tr": "Hapishane", "en": "Jail"}, {"tr": "Aynı", "en": "Same"}, {"tr": "Benzer", "en": "Similar"}, {"tr": "Farklı", "en": "Different"}, {"tr": "Ana", "en": "Main"}, {"tr": "Temel", "en": "Main"}, {"tr": "Başlıca", "en": "Chief"}, {"tr": "Sadece", "en": "Only"}, {"tr": "Tek", "en": "Only"}, {"tr": "Olağan", "en": "Usual"}, {"tr": "Nadir", "en": "Rare"}, {"tr": "Yaygın", "en": "Common"}, {"tr": "Izgara yapmak", "en": "Grill"}, {"tr": "Dökmek", "en": "Pour"}, {"tr": "Karıştırmak", "en": "Stir"}, {"tr": "Mikserle karıştırmak", "en": "Mix"}, {"tr": "Karıştırmak", "en": "Mix"}, {"tr": "Doğramak", "en": "Chop"}, {"tr": "Dilimlemek", "en": "Slice"}, {"tr": "Soymak", "en": "Peel"}, {"tr": "Eritmek", "en": "Melt"}, {"tr": "Fermuar", "en": "Zipper"}, {"tr": "Kol", "en": "Sleeve"}, {"tr": "Yaka", "en": "Collar"}, {"tr": "Kayış", "en": "Strap"}, {"tr": "Lif", "en": "Fiber"}, {"tr": "Kalıp", "en": "Fit"}, {"tr": "Geçmiş", "en": "Past"}, {"tr": "Dönem", "en": "Period"}, {"tr": "Çağ", "en": "Era"}, {"tr": "Yüzyıl", "en": "Century"}, {"tr": "Antik", "en": "Ancient"}, {"tr": "Harabe", "en": "Ruin"}, {"tr": "Kalıntı", "en": "Relic"}, {"tr": "Fosil", "en": "Fossil"}, {"tr": "Mezar", "en": "Tomb"}, {"tr": "Tapınak", "en": "Temple"}, {"tr": "Saray", "en": "Palace"}, {"tr": "Kale", "en": "Castle"}, {"tr": "Panik", "en": "Panic"}, {"tr": "Stres", "en": "Stress"}, {"tr": "Şok", "en": "Shock"}, {"tr": "Sevinç", "en": "Joy"}, {"tr": "Keder", "en": "Grief"}, {"tr": "Acı", "en": "Grief"}, {"tr": "Gurur", "en": "Pride"}, {"tr": "Utanç", "en": "Shame"}, {"tr": "Kıskançlık", "en": "Envy"}, {"tr": "Açgözlülük", "en": "Greed"}, {"tr": "Mürettebat", "en": "Crew"}, {"tr": "Kabin", "en": "Cabin"}, {"tr": "Kalkış", "en": "Takeoff"}, {"tr": "İniş", "en": "Landing"}, {"tr": "Uçağa binmek", "en": "Board"}, {"tr": "Gümrük", "en": "Customs"}, {"tr": "Devasa", "en": "Huge"}, {"tr": "Minik", "en": "Tiny"}, {"tr": "Dev", "en": "Giant"}, {"tr": "Pürüzsüz", "en": "Smooth"}, {"tr": "Pürüzlü", "en": "Rough"}, {"tr": "Kaba", "en": "Rough"}, {"tr": "Keskin", "en": "Sharp"}, {"tr": "Kör", "en": "Dull"}, {"tr": "Kredi", "en": "Loan"}, {"tr": "Borç", "en": "Loan"}, {"tr": "Kâr", "en": "Profit"}, {"tr": "Çek", "en": "Check"}, {"tr": "Paylaşmak", "en": "Share"}, {"tr": "Önemsemek", "en": "Care"}, {"tr": "Güvenmek", "en": "Trust"}, {"tr": "Aldatmak", "en": "Cheat"}, {"tr": "Kopya çekmek", "en": "Cheat"}, {"tr": "Çalmak", "en": "Steal"}, {"tr": "Dövüşmek", "en": "Fight"}, {"tr": "Kavga etmek", "en": "Fight"}, {"tr": "Suçlamak", "en": "Blame"}, {"tr": "Övmek", "en": "Praise"}, {"tr": "Sahne", "en": "Scene"}, {"tr": "Rol", "en": "Role"}, {"tr": "Senaryo", "en": "Script"}, {"tr": "Dram", "en": "Drama"}, {"tr": "Sıra", "en": "Row"}, {"tr": "Çekiç", "en": "Hammer"}, {"tr": "Çivi", "en": "Nail"}, {"tr": "Vida", "en": "Screw"}, {"tr": "Testere", "en": "Saw"}, {"tr": "Balta", "en": "Axe"}, {"tr": "Boya", "en": "Paint"}, {"tr": "Alarm", "en": "Alarm"}, {"tr": "Kalkan", "en": "Shield"}, {"tr": "Silah", "en": "Weapon"}, {"tr": "Tahmin etmek", "en": "Guess"}, {"tr": "Şüphelenmek", "en": "Doubt"}, {"tr": "Katılmak", "en": "Agree"}, {"tr": "Kastetmek", "en": "Mean"}, {"tr": "Sınıf", "en": "Class"}, {"tr": "Zil", "en": "Bell"}, {"tr": "Teneffüs", "en": "Break"}, {"tr": "Dönem", "en": "Term"}, {"tr": "Kısa sınav", "en": "Quiz"}, {"tr": "Geçmek", "en": "Pass"}, {"tr": "Kalmak", "en": "Fail"}, {"tr": "Paket", "en": "Pack"}, {"tr": "Torba", "en": "Bag"}, {"tr": "Sarmak", "en": "Wrap"}, {"tr": "Etiket", "en": "Label"}, {"tr": "Mühür", "en": "Seal"}, {"tr": "Göndermek", "en": "Send"}, {"tr": "Sevketmek", "en": "Ship"}, {"tr": "Plan", "en": "Plan"}, {"tr": "Bölge", "en": "Zone"}, {"tr": "Alan", "en": "Site"}, {"tr": "Arsa", "en": "Plot"}, {"tr": "Bahçe", "en": "Yard"}, {"tr": "Avlu", "en": "Yard"}, {"tr": "Yol", "en": "Path"}, {"tr": "Kubbe", "en": "Dome"}, {"tr": "Şimdi", "en": "Now"}, {"tr": "Son", "en": "End"}, {"tr": "Kader", "en": "Fate"}, {"tr": "Cerrah", "en": "Surgeon"}, {"tr": "Hasta", "en": "Patient"}, {"tr": "Vardiya", "en": "Shift"}, {"tr": "Nöbet", "en": "Duty"}, {"tr": "Bilirkişi", "en": "Expert"}, {"tr": "Yassı", "en": "Flat"}, {"tr": "Düzgün", "en": "Smooth"}, {"tr": "Eğri", "en": "Curved"}, {"tr": "Eğilmiş", "en": "Bent"}, {"tr": "Mercek", "en": "Lens"}, {"tr": "Flaş", "en": "Flash"}, {"tr": "Odak", "en": "Focus"}, {"tr": "Çekmek", "en": "Shoot"}, {"tr": "Fotoğraf", "en": "Photo"}, {"tr": "Kaset", "en": "Tape"}, {"tr": "Kaydetmek", "en": "Record"}, {"tr": "Düzenlemek", "en": "Edit"}, {"tr": "Buluşmak", "en": "Meet"}, {"tr": "Tanışmak", "en": "Meet"}, {"tr": "Selamlamak", "en": "Greet"}, {"tr": "Ziyaret etmek", "en": "Visit"}, {"tr": "Davet etmek", "en": "Invite"}, {"tr": "Karşılamak", "en": "Welcome"}, {"tr": "Katılmak", "en": "Join"}, {"tr": "Terk etmek", "en": "Leave"}, {"tr": "Sarılmak", "en": "Hug"}, {"tr": "Öpmek", "en": "Kiss"}, {"tr": "Emir", "en": "Order"}, {"tr": "Belge", "en": "Form"}, {"tr": "Damgalamak", "en": "Stamp"}, {"tr": "Kontrol etmek", "en": "Check"}, {"tr": "Tarak", "en": "Comb"}, {"tr": "Lavabo", "en": "Basin"}, {"tr": "Leğen", "en": "Basin"}, {"tr": "Musluk", "en": "Tap"}, {"tr": "Hortum", "en": "Hose"}, {"tr": "Sünger", "en": "Sponge"}, {"tr": "Bez", "en": "Cloth"}, {"tr": "Çöp kutusu", "en": "Bin"}, {"tr": "Bakır", "en": "Copper"}, {"tr": "Çığlık atmak", "en": "Scream"}, {"tr": "Bağırmak", "en": "Shout"}, {"tr": "İç çekmek", "en": "Sigh"}, {"tr": "Baş sallamak", "en": "Nod"}, {"tr": "Göz kırpmak", "en": "Blink"}, {"tr": "Buhar", "en": "Vapor"}, {"tr": "Su buharı", "en": "Steam"}, {"tr": "Duman", "en": "Smoke"}, {"tr": "Kül", "en": "Ash"}, {"tr": "Işın", "en": "Ray"}, {"tr": "Işık demeti", "en": "Beam"}, {"tr": "Toplu iğne", "en": "Pin"}, {"tr": "Kumaş", "en": "Cloth"}, {"tr": "Malzeme", "en": "Material"}, {"tr": "Kalıp", "en": "Pattern"}, {"tr": "Devir", "en": "Era"}, {"tr": "Çağ", "en": "Age"}, {"tr": "Modern", "en": "Modern"}, {"tr": "Gelecek", "en": "Future"}, {"tr": "Tarih", "en": "Date"}, {"tr": "Olay", "en": "Event"}, {"tr": "Yaşamak", "en": "Live"}, {"tr": "Ölmek", "en": "Die"}, {"tr": "Büyümek", "en": "Grow"}, {"tr": "Uyanmak", "en": "Wake"}, {"tr": "Yemek", "en": "Eat"}, {"tr": "Nefes almak", "en": "Breathe"}, {"tr": "Terlemek", "en": "Sweat"}, {"tr": "Dinlenmek", "en": "Rest"}, {"tr": "İyileşmek", "en": "Heal"}, {"tr": "Anlaşma", "en": "Deal"}, {"tr": "Teklif", "en": "Offer"}, {"tr": "Müşteri", "en": "Client"}, {"tr": "Net", "en": "Clear"}, {"tr": "Yabani ot", "en": "Weed"}, {"tr": "Yosun", "en": "Moss"}, {"tr": "Eğrelti otu", "en": "Fern"}, {"tr": "Sarmaşık", "en": "Ivy"}, {"tr": "Diken", "en": "Thorn"}, {"tr": "Çalı", "en": "Bush"}, {"tr": "Ağaç kabuğu", "en": "Bark"}, {"tr": "Bitki özsuyu", "en": "Sap"}, {"tr": "Ağaç gövdesi", "en": "Trunk"}, {"tr": "İnce dal", "en": "Twig"}, {"tr": "Tomurcuk", "en": "Bud"}, {"tr": "Polen", "en": "Pollen"}, {"tr": "Tepsi", "en": "Tray"}, {"tr": "Kapak", "en": "Lid"}, {"tr": "Sürahi", "en": "Jug"}, {"tr": "Sürahi", "en": "Pitcher"}, {"tr": "Su ısıtıcısı", "en": "Kettle"}, {"tr": "Rende", "en": "Grater"}, {"tr": "Huni", "en": "Funnel"}, {"tr": "Süzgeç", "en": "Strainer"}, {"tr": "Önlük", "en": "Apron"}, {"tr": "Oklava", "en": "Rolling pin"}, {"tr": "Mantar", "en": "Cork"}, {"tr": "Tıpa", "en": "Cork"}, {"tr": "Seçkin", "en": "Elite"}, {"tr": "Akran", "en": "Peer"}, {"tr": "Soylu", "en": "Noble"}, {"tr": "Halktan biri", "en": "Commoner"}, {"tr": "Köle", "en": "Slave"}, {"tr": "Efendi", "en": "Master"}, {"tr": "Usta", "en": "Master"}, {"tr": "İsyancı", "en": "Rebel"}, {"tr": "Yerli", "en": "Native"}, {"tr": "Yabancı", "en": "Stranger"}, {"tr": "Yabancı", "en": "Foreigner"}, {"tr": "Konuk", "en": "Guest"}, {"tr": "Çürütmek", "en": "Disprove"}, {"tr": "İma etmek", "en": "Imply"}, {"tr": "Çıkarsamak", "en": "Infer"}, {"tr": "Varsaymak", "en": "Assume"}, {"tr": "Doğrulamak", "en": "Verify"}, {"tr": "Analiz etmek", "en": "Analyze"}, {"tr": "Çıkarmak", "en": "Conclude"}, {"tr": "Sonuçlandırmak", "en": "Conclude"}, {"tr": "Tanımlamak", "en": "Define"}, {"tr": "Yol parası", "en": "Fare"}, {"tr": "Ücret", "en": "Fare"}, {"tr": "Seyahat", "en": "Journey"}, {"tr": "Liman", "en": "Port"}, {"tr": "Liman", "en": "Harbor"}, {"tr": "Güverte", "en": "Deck"}, {"tr": "Çapa", "en": "Anchor"}, {"tr": "Küre", "en": "Sphere"}, {"tr": "Küp", "en": "Cube"}, {"tr": "Koni", "en": "Cone"}, {"tr": "Silindir", "en": "Cylinder"}, {"tr": "Açı", "en": "Angle"}, {"tr": "Genişlik", "en": "Width"}, {"tr": "Yükseklik", "en": "Height"}, {"tr": "Derinlik", "en": "Depth"}, {"tr": "Hacim", "en": "Volume"}, {"tr": "Hafif", "en": "Faint"}, {"tr": "Sönük", "en": "Faint"}, {"tr": "Loş", "en": "Dim"}, {"tr": "Parıltı", "en": "Glow"}, {"tr": "Işık", "en": "Shine"}, {"tr": "Parlamak", "en": "Shine"}, {"tr": "Gölge", "en": "Shade"}, {"tr": "Ton", "en": "Shade"}, {"tr": "Yaslanmak", "en": "Lean"}, {"tr": "Uzanmak", "en": "Lie"}, {"tr": "Eğilmek", "en": "Bend"}, {"tr": "Dönmek", "en": "Turn"}, {"tr": "Yuvarlanmak", "en": "Roll"}, {"tr": "Sallanmak", "en": "Swing"}, {"tr": "Zıplamak", "en": "Bounce"}, {"tr": "Yüzmek", "en": "Float"}, {"tr": "Askıda kalmak", "en": "Float"}, {"tr": "Aksesuar", "en": "Prop"}, {"tr": "Sahne eşyası", "en": "Prop"}, {"tr": "İşaret", "en": "Cue"}, {"tr": "Replik uyarısı", "en": "Cue"}, {"tr": "Oyuncu kadrosu", "en": "Cast"}, {"tr": "Hikaye örgüsü", "en": "Plot"}, {"tr": "Konu", "en": "Plot"}, {"tr": "Tür", "en": "Genre"}, {"tr": "Eleştiri", "en": "Review"}, {"tr": "İnceleme", "en": "Review"}, {"tr": "Cıvata", "en": "Bolt"}, {"tr": "Somun", "en": "Nut"}, {"tr": "Pim", "en": "Pin"}, {"tr": "Kanca", "en": "Hook"}, {"tr": "Kelepçe", "en": "Clamp"}, {"tr": "Eklem", "en": "Joint"}, {"tr": "Bağlantı yeri", "en": "Joint"}, {"tr": "Tehdit", "en": "Threat"}, {"tr": "Tehlike", "en": "Hazard"}, {"tr": "Risk", "en": "Risk"}, {"tr": "Zarar", "en": "Harm"}, {"tr": "Ziyan", "en": "Harm"}, {"tr": "Hasar", "en": "Damage"}, {"tr": "Emniyetli", "en": "Secure"}, {"tr": "Ayrıca", "en": "Also"}, {"tr": "De", "en": "Too"}, {"tr": "Da", "en": "Too"}, {"tr": "Bile", "en": "Even"}, {"tr": "Sadece", "en": "Just"}, {"tr": "Az önce", "en": "Just"}, {"tr": "Neredeyse", "en": "Almost"}, {"tr": "Yaklaşık olarak", "en": "Nearly"}, {"tr": "Epey", "en": "Quite"}, {"tr": "Oldukça", "en": "Quite"}, {"tr": "Yazı tahtası", "en": "Board"}, {"tr": "Kalem", "en": "Pen"}, {"tr": "Kitap", "en": "Book"}, {"tr": "Silgi", "en": "Eraser"}, {"tr": "Cetvel", "en": "Ruler"}, {"tr": "Küre", "en": "Globe"}, {"tr": "Traktör", "en": "Tractor"}, {"tr": "Ahır", "en": "Barn"}, {"tr": "Varil", "en": "Barrel"}, {"tr": "Kasa", "en": "Case"}, {"tr": "Bayrak", "en": "Flag"}, {"tr": "Servis etmek", "en": "Serve"}, {"tr": "Duyuru", "en": "Notice"}, {"tr": "Not", "en": "Note"}, {"tr": "Cevap", "en": "Reply"}, {"tr": "Yanıt", "en": "Reply"}, {"tr": "İstek", "en": "Request"}, {"tr": "Talep", "en": "Request"}, {"tr": "Talep", "en": "Demand"}, {"tr": "Sorun", "en": "Issue"}, {"tr": "Mesele", "en": "Issue"}, {"tr": "Hedef", "en": "Goal"}, {"tr": "İplik", "en": "Yarn"}, {"tr": "Dantel", "en": "Lace"}, {"tr": "Kadife", "en": "Velvet"}];
+const TR={'i':'İ','ı':'I','ğ':'Ğ','ü':'Ü','ş':'Ş','ö':'Ö','ç':'Ç'};
+const $id=(id)=>document.getElementById(id);
+const mode=$id('mode'),size=$id('size'),newBtn=$id('newBtn'),checkBtn=$id('checkBtn'),hintBtn=$id('hintBtn'),fullBtn=$id('fullBtn'),clearBtn=$id('clearBtn'),tabAcross=$id('tabAcross'),tabDown=$id('tabDown'),stage=$id('stage'),board=$id('board'),clues=$id('clues'),toastEl=$id('toast'),hintBubble=$id('hintBubble'),wordCount=$id('wordCount'),filledCount=$id('filledCount'),score=$id('score'),timer=$id('timer');
+let placed=[],cells={},active={wordId:null,index:0,dir:'across'},currentTab='across',started=Date.now(),timerInt=null,puzzleCompleted=false;window.isPuzzleCompleted=()=>puzzleCompleted;
+function gridText(s){return String(s||'').trim().replace(/[âÂ]/g,'a').replace(/[îÎ]/g,'i').replace(/[ûÛ]/g,'u').split('').map(c=>TR[c]||c.toUpperCase()).join('').replace(/[^A-ZÇĞİÖŞÜ]/g,'')}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}function key(x,y){return x+','+y}function ans(w,m){return m==='en_tr'?w.tr:w.en}function clue(w,m){return m==='en_tr'?w.en:w.tr}function toast(m){const t=document.getElementById('toast');t.innerHTML=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function pool(){const m=mode.value,seen=new Set();return WORDS.map(w=>({raw:w,answer:ans(w,m),clue:clue(w,m),grid:gridText(ans(w,m))})).filter(w=>w.grid.length>=3&&w.grid.length<=14&&!seen.has(w.grid)&&seen.add(w.grid))}
+function canPlace(word,x,y,dir,grid){let dx=dir==='across'?1:0,dy=dir==='down'?1:0,touch=0;for(let i=0;i<word.length;i++){let xx=x+dx*i,yy=y+dy*i,k=key(xx,yy),e=grid[k];if(e&&e!==word[i])return false;if(e===word[i])touch++;let before=key(xx-dx,yy-dy),after=key(xx+dx,yy+dy);if(i===0&&grid[before])return false;if(i===word.length-1&&grid[after])return false;if(!e){let sides=dir==='across'?[key(xx,yy-1),key(xx,yy+1)]:[key(xx-1,yy),key(xx+1,yy)];if(grid[sides[0]]||grid[sides[1]])return false}}return touch>0}
+function place(o,x,y,dir,grid,out){let dx=dir==='across'?1:0,dy=dir==='down'?1:0;for(let i=0;i<o.grid.length;i++)grid[key(x+dx*i,y+dy*i)]=o.grid[i];out.push({...o,x,y,dir,id:out.length,number:0})}
+function generate(){puzzleCompleted=false;hintsUsed=0;hideFinishEffect();started=Date.now();startTimer();let target=+size.value;let list=shuffle(pool()).sort((a,b)=>b.grid.length-a.grid.length);list=shuffle(list.slice(0,900));let grid={},out=[];place(list.shift(),0,0,'across',grid,out);let attempts=0;while(out.length<target&&attempts<2600&&list.length){attempts++;let o=list.shift(),opts=[];for(const p of out){for(let i=0;i<o.grid.length;i++)for(let j=0;j<p.grid.length;j++)if(o.grid[i]===p.grid[j]){let dir=p.dir==='across'?'down':'across';opts.push({x:p.x+(p.dir==='across'?j:0)-(dir==='across'?i:0),y:p.y+(p.dir==='down'?j:0)-(dir==='down'?i:0),dir})}}opts=shuffle(opts);let ok=false;for(const z of opts)if(canPlace(o.grid,z.x,z.y,z.dir,grid)){place(o,z.x,z.y,z.dir,grid,out);ok=true;break}}let starts={},n=1;out.sort((a,b)=>a.y-b.y||a.x-b.x);for(const w of out){let k=key(w.x,w.y);if(!starts[k])starts[k]=n++;w.number=starts[k]}placed=out;cells=grid;render();renderLevel2Hud();toast('Yeni bulmaca hazır ✨')}
+function bounds(){let xs=[],ys=[];Object.keys(cells).forEach(k=>{let [x,y]=k.split(',').map(Number);xs.push(x);ys.push(y)});return{minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)}}
+function fit(cols,rows){
+  const stage=document.getElementById('stage'),b=stage.getBoundingClientRect(),gap=innerWidth<520?1:2;
+  const freeW=Math.max(120,b.width-10-gap*(cols-1));
+  const freeH=Math.max(120,b.height-10-gap*(rows-1));
+  let s=Math.floor(Math.min(freeW/cols,freeH/rows));
+  // Taşmayı engellemek için minimumu düşük tuttuk; büyük bulmacalarda kareler otomatik küçülür.
+  s=Math.max(11,Math.min(68,s));
+  document.documentElement.style.setProperty('--cellSize',s+'px');
+  return s
+}
+function render(){const bd=bounds(),board=document.getElementById('board');board.innerHTML='';let rows=bd.maxY-bd.minY+1,cols=bd.maxX-bd.minX+1,sz=fit(cols,rows);board.style.gridTemplateColumns=`repeat(${cols}, ${sz}px)`;board.style.gridTemplateRows=`repeat(${rows}, ${sz}px)`;let num={};placed.forEach(w=>num[key(w.x,w.y)]=w.number);for(let y=bd.minY;y<=bd.maxY;y++)for(let x=bd.minX;x<=bd.maxX;x++){let d=document.createElement('div');d.className='cell';d.style.width=sz+'px';d.style.height=sz+'px';let k=key(x,y);if(cells[k]){d.classList.add('filled');if(num[k])d.innerHTML=`<span class="num">${num[k]}</span>`;let input=document.createElement('input');input.className='letter';input.maxLength=1;input.dataset.x=x;input.dataset.y=y;input.dataset.answer=cells[k];input.autocomplete='off';input.inputMode='text';input.addEventListener('focus',()=>focusCell(x,y));input.addEventListener('input',e=>typeLetter(e,x,y));input.addEventListener('keydown',e=>keyDown(e,x,y));
+d.addEventListener('pointerdown',ev=>{
+  if(ev.target!==input){
+    ev.preventDefault();
+    input.focus();
+    try{ input.setSelectionRange(input.value.length,input.value.length); }catch(_){}
+  }
+});
+d.appendChild(input)}board.appendChild(d)}renderClues();updateStats();}
+function wordsAt(x,y){return placed.filter(w=>{let dx=w.dir==='across'?1:0,dy=w.dir==='down'?1:0;for(let i=0;i<w.grid.length;i++)if(w.x+dx*i===x&&w.y+dy*i===y)return true;return false})}function idx(w,x,y){return w.dir==='across'?x-w.x:y-w.y}function inputAt(x,y){return document.querySelector(`.letter[data-x="${x}"][data-y="${y}"]`)}function word(){return placed.find(w=>w.id===active.wordId)}function pos(w,i){return{x:w.x+(w.dir==='across'?i:0),y:w.y+(w.dir==='down'?i:0)}}
+function focusCell(x,y){let list=wordsAt(x,y);if(!list.length)return;let w=list.find(q=>q.dir===active.dir)||list[0];active={wordId:w.id,index:idx(w,x,y),dir:w.dir};highlight()}
+function move(d){let w=word();if(!w)return;active.index=Math.max(0,Math.min(w.grid.length-1,active.index+d));let p=pos(w,active.index),i=inputAt(p.x,p.y);if(i){i.focus();i.select()}highlight()}
+
+let hintToastTimer=null,hintsUsed=0;
+function showHintBubble(html,ms=1900){
+  const b=document.getElementById('hintBubble');
+  if(!b)return;
+  b.innerHTML=html;
+  b.classList.add('show');
+  clearTimeout(hintToastTimer);
+  hintToastTimer=setTimeout(()=>b.classList.remove('show'),ms);
+}
+function flashHintCell(inp){
+  if(!inp||!inp.parentElement)return;
+  inp.parentElement.classList.add('hintedCell');
+  setTimeout(()=>inp.parentElement.classList.remove('hintedCell'),1700);
+}
+function showWrongLetterHint(inp){
+  if(!inp||!inp.value)return;
+  const correct=inp.dataset.answer;
+  const typed=gridText(inp.value);
+  if(typed && typed!==correct){
+    showHintBubble(`💡 Yanlış harf. Bu kutunun doğru harfi: <b>${correct}</b>`);
+    flashHintCell(inp);
+  }
+}
+function activeInput(){
+  let w=word();
+  if(w){let p=pos(w,active.index);let i=inputAt(p.x,p.y);if(i)return i;}
+  return document.querySelector('.letter.wrong') || [...document.querySelectorAll('.letter')].find(i=>!i.value) || document.querySelector('.letter');
+}
+function revealHint(){
+  let inp=activeInput();
+  if(!inp){toast('İpucu için kutu bulunamadı');return;}
+  hintsUsed++;
+  inp.value=inp.dataset.answer;
+  inp.classList.add('revealed');
+  markCell(inp);
+  flashHintCell(inp);
+  updateStats();
+  showHintBubble(`💡 İpucu kullanıldı: doğru harf <b>${inp.dataset.answer}</b>. Kalanını sen tamamla!`,2200);
+  if(navigator.vibrate)navigator.vibrate(60);
+  checkAutoFinish();
+}
+
+function markCell(inp){
+  inp.classList.remove('correct','wrong');
+  inp.parentElement.classList.remove('correctCell','wrongCell');
+  if(!inp.value)return;
+  if(gridText(inp.value)===inp.dataset.answer){inp.classList.add('correct');inp.parentElement.classList.add('correctCell')}
+  else{inp.classList.add('wrong');inp.parentElement.classList.add('wrongCell')}
+}
+function typeLetter(e,x,y){let v=gridText(e.target.value).slice(-1);e.target.value=v;e.target.classList.remove('revealed');markCell(e.target);if(v&&v!==e.target.dataset.answer)showWrongLetterHint(e.target);if(v)move(1);updateStats();checkAutoFinish()}
+function clearInp(i){if(!i)return;i.value='';i.classList.remove('correct','wrong','revealed');i.parentElement.classList.remove('correctCell','wrongCell','hintedCell')}
+function keyDown(e,x,y){if(e.key==='Backspace'){e.preventDefault();let i=inputAt(x,y);if(i.value){clearInp(i)}else{move(-1);let w=word();if(w){let p=pos(w,active.index),pr=inputAt(p.x,p.y);clearInp(pr)}}updateStats()}else if(e.key==='ArrowRight'){e.preventDefault();active.dir='across';move(1)}else if(e.key==='ArrowLeft'){e.preventDefault();active.dir='across';move(-1)}else if(e.key==='ArrowDown'){e.preventDefault();active.dir='down';move(1)}else if(e.key==='ArrowUp'){e.preventDefault();active.dir='down';move(-1)}}
+function highlight(){document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','same'));document.querySelectorAll('.clue').forEach(c=>c.classList.remove('focus'));let w=word();if(!w)return;for(let i=0;i<w.grid.length;i++){let p=pos(w,i),inp=inputAt(p.x,p.y);if(inp)inp.parentElement.classList.add(i===active.index?'active':'same')}let c=document.querySelector(`.clue[data-id="${w.id}"]`);if(c){c.classList.add('focus');c.scrollIntoView({block:'nearest'})}}
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function renderClues(){const wrap=clues;wrap.innerHTML='';placed.filter(w=>w.dir===currentTab).sort((a,b)=>a.number-b.number).forEach(w=>{let d=document.createElement('div');d.className='clue';d.dataset.id=w.id;d.innerHTML=`<div class="clueTop"><span class="no">${w.number}</span><div><div class="txt">${esc(w.clue)}</div><div class="mini">${w.grid.length} harf • ${w.dir==='across'?'Yatay':'Dikey'}</div></div></div><div class="answerRow"><button class="small" data-show="${w.id}">👁 Cevabı göster</button><span class="ans" id="ans-${w.id}">${esc(w.answer)}</span></div>`;d.addEventListener('click',ev=>{if(ev.target.tagName==='BUTTON')return;active={wordId:w.id,index:0,dir:w.dir};let p=pos(w,0);inputAt(p.x,p.y)?.focus();highlight()});wrap.appendChild(d)});document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{let a=document.getElementById('ans-'+b.dataset.show);a.classList.toggle('show');b.textContent=a.classList.contains('show')?'🙈 Gizle':'👁 Cevabı göster'})}
+function updateStats(){let total=0,filled=0,ok=0;document.querySelectorAll('.letter').forEach(i=>{total++;if(i.value){filled++;if(gridText(i.value)===i.dataset.answer)ok++}});wordCount.textContent=placed.length;filledCount.textContent=filled;score.textContent=total?Math.round(ok/total*100)+'%':'0%'}
+function check(){let total=0,ok=0;document.querySelectorAll('.letter').forEach(i=>{total++;markCell(i);if(i.value&&gridText(i.value)===i.dataset.answer)ok++});updateStats();if(ok===total){toast('🏆 Mükemmel! Bulmaca tamamlandı.');finishGameEffect()}else{toast(`Kontrol: ${ok}/${total} doğru harf`)} }
+function clearAll(){document.querySelectorAll('.letter').forEach(i=>clearInp(i));updateStats();toast('Temizlendi')}
+function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{let s=Math.floor((Date.now()-started)/1000),m=Math.floor(s/60);timer.textContent=String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},500)}
+
+/* ===== LEVEL 2: SEVİYE, XP, YILDIZ VE BİTİRME EFEKTİ ===== */
+const LVL_KEY='kelime_arena_level2_v1';
+let levelState=loadLevelState();
+function loadLevelState(){try{return JSON.parse(localStorage.getItem(LVL_KEY))||{level:1,xp:0,totalScore:0,completed:0}}catch(e){return{level:1,xp:0,totalScore:0,completed:0}}}
+function saveLevelState(){localStorage.setItem(LVL_KEY,JSON.stringify(levelState))}
+function levelNeed(lv){return 250+(lv-1)*160}
+function renderLevel2Hud(){
+  let actions=document.querySelector('.actions'); if(!actions)return;
+  let hud=document.getElementById('levelHud');
+  if(!hud){hud=document.createElement('div');hud.id='levelHud';hud.className='levelHud';actions.prepend(hud)}
+  let need=levelNeed(levelState.level),pct=Math.min(100,Math.round(levelState.xp/need*100));
+  hud.innerHTML=`<div class="levelPill">🏅 Seviye ${levelState.level}</div><div class="levelPill">💎 ${levelState.totalScore} Puan</div><div class="xpBox"><div class="xpBar" style="width:${pct}%"></div><div class="xpText">XP ${levelState.xp}/${need}</div></div>`;
+}
+function isPuzzleSolved(){let total=0,ok=0;document.querySelectorAll('.letter').forEach(i=>{total++;if(i.value&&gridText(i.value)===i.dataset.answer)ok++});return total>0&&ok===total}
+function checkAutoFinish(){if(!puzzleCompleted&&isPuzzleSolved())finishGameEffect()}
+function calcStars(){let sec=Math.floor((Date.now()-started)/1000);if(sec<=60)return 3;if(sec<=150)return 2;return 1}
+function addReward(stars){let base=placed.length*10, bonus=stars*35, xp=base+bonus;levelState.completed++;levelState.totalScore+=xp;levelState.xp+=xp;let leveled=false;while(levelState.xp>=levelNeed(levelState.level)){levelState.xp-=levelNeed(levelState.level);levelState.level++;leveled=true}saveLevelState();renderLevel2Hud();return{points:xp,xp,leveled}}
+function makeWinSound(){
+  try{const A=window.AudioContext||window.webkitAudioContext,ctx=new A();[523,659,784,1046].forEach((f,n)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(ctx.destination);g.gain.setValueAtTime(0,ctx.currentTime+n*.12);g.gain.linearRampToValueAtTime(.12,ctx.currentTime+n*.12+.025);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+n*.12+.20);o.start(ctx.currentTime+n*.12);o.stop(ctx.currentTime+n*.12+.22)})}catch(e){}
+}
+function confettiBurst(){
+  const colors=['#fde68a','#fb923c','#22d3ee','#f472b6','#86efac','#c084fc'];
+  for(let i=0;i<170;i++){let c=document.createElement('div');c.className='confetti2';c.style.left=Math.random()*100+'vw';c.style.background=colors[i%colors.length];c.style.animationDuration=(2+Math.random()*2.5)+'s';c.style.transform=`rotate(${Math.random()*360}deg)`;document.body.appendChild(c);setTimeout(()=>c.remove(),4800)}
+}
+function finishGameEffect(){
+  if(puzzleCompleted)return; puzzleCompleted=true; clearInterval(timerInt);
+  let stars=calcStars(),reward=addReward(stars),overlay=document.getElementById('finishOverlay');
+  document.getElementById('finishStars').textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('finishMsg').textContent=reward.leveled?'Muhteşem! Seviye atladın!':'Harika iş! Bulmacayı tamamladın!';
+  document.getElementById('rewardPoint').textContent='+'+reward.points+' Puan';
+  document.getElementById('rewardXp').textContent='+'+reward.xp+' XP';
+  document.getElementById('rewardLevel').textContent='Seviye '+levelState.level;
+  overlay?.classList.add('show'); document.querySelector('.app')?.classList.add('screenShake');
+  makeWinSound(); confettiBurst(); if(navigator.vibrate)navigator.vibrate([120,80,160,80,220]);
+  setTimeout(()=>document.querySelector('.app')?.classList.remove('screenShake'),520);
+}
+function hideFinishEffect(){document.getElementById('finishOverlay')?.classList.remove('show')}
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='nextPuzzleBtn'){hideFinishEffect();generate()}});
+renderLevel2Hud();
+
+if(newBtn)newBtn.onclick=generate;if(checkBtn)checkBtn.onclick=check;if(hintBtn)hintBtn.onclick=revealHint;if(clearBtn)clearBtn.onclick=clearAll;if(mode)mode.onchange=generate;if(size)size.onchange=generate;if(tabAcross)tabAcross.onclick=()=>{currentTab='across';tabAcross.classList.add('on');tabDown?.classList.remove('on');renderClues()};if(tabDown)tabDown.onclick=()=>{currentTab='down';tabDown.classList.add('on');tabAcross?.classList.remove('on');renderClues()};if(fullBtn)fullBtn.onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};addEventListener('resize',()=>{if(Object.keys(cells).length)render()});generate();
+</script>
+
+<script>
+(function(){
+  const intro=document.getElementById('introScreen');
+  const btn=document.getElementById('introStartBtn');
+  function closeIntro(){ if(intro) intro.classList.add('hide'); }
+  if(btn) btn.addEventListener('click', closeIntro);
+  window.addEventListener('load', ()=> setTimeout(closeIntro, 2600));
+})();
+</script>
+
+
+<script>
+/* ===== LEVEL 4: Profesyonel mobil oyun sistemleri ===== */
+(function(){
+  const L4_KEY='kelime_arena_level4_professional_v1';
+  const today=()=>new Date().toISOString().slice(0,10);
+  function loadL4(){try{return JSON.parse(localStorage.getItem(L4_KEY))||null}catch(e){return null}}
+  function saveL4(){localStorage.setItem(L4_KEY,JSON.stringify(window.level4State))}
+  const L4_DEFAULT={coins:150,bestCombo:0,totalCorrect:0,totalWrong:0,hints:0,streak:0,lastDaily:'',sound:true,finishedToday:0,missionDate:today()};
+  window.level4State=Object.assign({},L4_DEFAULT,loadL4()||{});
+  if(window.level4State.missionDate!==today()){window.level4State.missionDate=today();window.level4State.finishedToday=0;window.level4State.streak=0;saveL4()}
+  const oldToast=window.toast||function(m){alert(m)};
+  function sound(type){
+    if(!window.level4State.sound)return;
+    try{
+      const A=window.AudioContext||window.webkitAudioContext,ctx=new A();
+      const pack={correct:[[660,.045,.08],[880,.055,.07]],wrong:[[180,.07,.10],[120,.10,.08]],coin:[[990,.04,.07],[1320,.06,.06]],hint:[[520,.06,.08],[740,.05,.07]],win:[[523,.10,.10],[659,.10,.10],[784,.12,.10],[1046,.18,.12]]}[type]||[[440,.08,.08]];
+      pack.forEach((p,n)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type=type==='wrong'?'sawtooth':'triangle';o.frequency.value=p[0];o.connect(g);g.connect(ctx.destination);let st=ctx.currentTime+n*.08;g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(p[2],st+.015);g.gain.exponentialRampToValueAtTime(.001,st+p[1]+.04);o.start(st);o.stop(st+p[1]+.08)});
+    }catch(e){}
+  }
+  window.level4Sound=sound;
+  function addCoins(n,reason=''){window.level4State.coins+=n;saveL4();renderProHud();sound('coin');coinFly('💎 +'+n);if(reason)oldToast(reason)}
+  function spendCoins(n){if(window.level4State.coins<n){oldToast('💎 Yetersiz coin. Biraz daha bulmaca çözmelisin.');sound('wrong');return false}window.level4State.coins-=n;saveL4();renderProHud();return true}
+  function coinFly(txt){let d=document.createElement('div');d.className='coinFly';d.textContent=txt;d.style.left='50%';d.style.top='30%';document.body.appendChild(d);setTimeout(()=>d.remove(),950)}
+  function comboSplash(n){if(n<3)return;let d=document.createElement('div');d.className='comboSplash';d.textContent='🔥 '+n+' COMBO!';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
+  function missions(){return[
+    {id:'finish',title:'1 bulmaca bitir',sub:'Ödül: 50 coin',done:window.level4State.finishedToday>=1},
+    {id:'combo',title:'5 combo yap',sub:'Ödül: 40 coin',done:window.level4State.bestCombo>=5},
+    {id:'hint',title:'İpucunu akıllı kullan',sub:'Bugün en az 1 ipucu dene',done:window.level4State.hints>=1}
+  ]}
+  function renderMissions(){ const oldMission=document.getElementById('missionBox'); if(oldMission) oldMission.remove(); }
+  function renderProHud(){
+    const top=document.querySelector('.top'); if(top&&!document.querySelector('.level4Badge')){let b=document.createElement('div');b.className='level4Badge';b.textContent='LEVEL 4 PRO';top.appendChild(b)}
+    const actions=document.querySelector('.actions'); if(!actions)return;
+    let hud=document.getElementById('proHud');
+    if(!hud){hud=document.createElement('div');hud.id='proHud';hud.className='proHud';actions.appendChild(hud)}
+    hud.innerHTML='<span class="proPill good">💎 '+window.level4State.coins+'</span><span class="proPill warn">🔥 '+window.level4State.streak+'</span><span class="proPill">🏆 '+window.level4State.bestCombo+'</span><button id="soundBtn" class="proButton '+(!window.level4State.sound?'soundOff':'')+'">'+(window.level4State.sound?'🔊':'🔇')+'</button>';
+    document.getElementById('soundBtn').onclick=()=>{window.level4State.sound=!window.level4State.sound;saveL4();renderProHud();};
+    const oldMission=document.getElementById('missionBox'); if(oldMission) oldMission.remove();
+  }
+  function openDaily(){
+    if(window.level4State.lastDaily===today()){oldToast('🎁 Günlük ödül bugün alındı. Yarın tekrar gel!');return}
+    document.getElementById('dailyOverlay')?.classList.add('show');
+  }
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.id==='claimDailyBtn'){
+      if(window.level4State.lastDaily!==today()){window.level4State.lastDaily=today();saveL4();addCoins(75,'🎁 Günlük ödül alındı: +75 coin')}
+      document.getElementById('dailyOverlay')?.classList.remove('show');
+    }
+    if(e.target&&e.target.id==='dailyOverlay')e.target.classList.remove('show');
+  });
+  const oldGenerate=window.generate;
+  if(typeof oldGenerate==='function')window.generate=function(){window.level4State.streak=0;saveL4();oldGenerate();renderProHud();};
+  const oldMark=window.markCell;
+  if(typeof oldMark==='function')window.markCell=function(inp){
+    const before=inp.classList.contains('correct')?'correct':inp.classList.contains('wrong')?'wrong':'';
+    oldMark(inp);
+    if(!inp.value)return;
+    const after=inp.classList.contains('correct')?'correct':inp.classList.contains('wrong')?'wrong':'';
+    if(after&&after!==before){
+      inp.parentElement.classList.remove('perfectGlow'); void inp.parentElement.offsetWidth; inp.parentElement.classList.add('perfectGlow');
+      if(after==='correct'){window.level4State.streak++;window.level4State.totalCorrect++;window.level4State.bestCombo=Math.max(window.level4State.bestCombo,window.level4State.streak);sound('correct');if(window.level4State.streak%5===0)addCoins(10,'🔥 Combo ödülü: +10 coin');comboSplash(window.level4State.streak);if(navigator.vibrate)navigator.vibrate(28)}
+      else{window.level4State.streak=0;window.level4State.totalWrong++;sound('wrong');if(navigator.vibrate)navigator.vibrate([55,30,55])}
+      saveL4();renderProHud();
+    }
+  };
+  const oldReveal=window.revealHint;
+  if(typeof oldReveal==='function')window.revealHint=function(){
+    if(!spendCoins(15))return;
+    window.level4State.hints++;saveL4();sound('hint');
+    oldReveal();renderProHud();oldToast('💡 Akıllı ipucu kullanıldı: -15 coin');
+  };
+  const oldFinish=window.finishGameEffect;
+  if(typeof oldFinish==='function')window.finishGameEffect=function(){
+    if(typeof window.isPuzzleCompleted==='function' && window.isPuzzleCompleted())return;
+    oldFinish();
+    window.level4State.finishedToday++;
+    let bonus=50;
+    if(window.level4State.streak>=8)bonus+=25;
+    addCoins(bonus,'🏆 Bulmaca ödülü: +'+bonus+' coin');
+    sound('win');saveL4();renderProHud();
+  };
+  // mevcut butonları yeni fonksiyonlara tekrar bağla
+  setTimeout(()=>{const hb=document.getElementById('hintBtn'),nb=document.getElementById('newBtn');if(hb&&window.revealHint)hb.onclick=window.revealHint;if(nb&&window.generate)nb.onclick=window.generate;renderProHud();},50);
+})();
+</script>
+
+</body></html>
